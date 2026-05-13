@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Simulador VR Rayos X</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  header h1 { font-size: 1.2rem; font-weight: 600; }
+  header span { color: #8b949e; font-size: 0.9rem; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    padding: 28px 32px 0;
+  }
+
+  .stat-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  .stat-card .label { color: #8b949e; font-size: 0.8rem; margin-bottom: 6px; }
+  .stat-card .value { font-size: 2rem; font-weight: 700; }
+  .stat-card .value.green  { color: #3fb950; }
+  .stat-card .value.blue   { color: #58a6ff; }
+  .stat-card .value.purple { color: #bc8cff; }
+
+  .section {
+    padding: 28px 32px;
+  }
+
+  .section h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  th {
+    background: #21262d;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.8rem;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #30363d;
+  }
+
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #21262d;
+    font-size: 0.9rem;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1c2128; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge.sem { background: #1f3a5f; color: #58a6ff; }
+
+  .score-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bar-bg {
+    flex: 1;
+    height: 8px;
+    background: #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+
+  .bar-fill.pre  { background: #58a6ff; }
+  .bar-fill.post { background: #3fb950; }
+
+  .score-num { font-weight: 700; min-width: 36px; text-align: right; }
+  .score-num.pre  { color: #58a6ff; }
+  .score-num.post { color: #3fb950; }
+
+  .delta {
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+  .delta.pos { color: #3fb950; }
+  .delta.neg { color: #f85149; }
+  .delta.neu { color: #8b949e; }
+
+  .empty {
+    text-align: center;
+    padding: 48px;
+    color: #8b949e;
+  }
+
+  .refresh-btn {
+    margin-left: auto;
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+  }
+
+  .refresh-btn:hover { background: #30363d; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Simulador VR — Sistema de Rayos X</h1>
+    <span>Dashboard de resultados pre/post test</span>
+  </div>
+  <button class="refresh-btn" onclick="load()">Actualizar</button>
+</header>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="label">Estudiantes</div>
+    <div class="value blue" id="stat-total">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Promedio Pre-test</div>
+    <div class="value blue" id="stat-pre">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Promedio Post-test</div>
+    <div class="value green" id="stat-post">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Mejora promedio</div>
+    <div class="value purple" id="stat-delta">—</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Resultados por estudiante</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Estudiante</th>
+        <th>Semestre</th>
+        <th>Pre-test (/ 10)</th>
+        <th>Post-test (/ 10)</th>
+        <th>Mejora</th>
+      </tr>
+    </thead>
+    <tbody id="tabla"></tbody>
+  </table>
+</div>
+
+<script>
+const SEMESTRES = ['','Primero','Segundo','Tercero','Cuarto','Quinto','Sexto','Séptimo'];
+
+async function load() {
+  const res  = await fetch('/api/results');
+  const data = await res.json();
+  const tbody = document.getElementById('tabla');
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Sin datos aún</td></tr>';
+    document.getElementById('stat-total').textContent = '0';
+    return;
+  }
+
+  // Calcular stats
+  const conPost = data.filter(d => d.total_post > 0);
+  const conPre  = data.filter(d => d.total_pre  > 0);
+  const avgPre  = conPre.length  ? (conPre.reduce((s,d)  => s + d.puntaje_pre,  0) / conPre.length).toFixed(1)  : '—';
+  const avgPost = conPost.length ? (conPost.reduce((s,d) => s + d.puntaje_post, 0) / conPost.length).toFixed(1) : '—';
+  const ambos   = data.filter(d => d.total_pre > 0 && d.total_post > 0);
+  const avgDelta = ambos.length
+    ? ((ambos.reduce((s,d) => s + (d.puntaje_post - d.puntaje_pre), 0) / ambos.length).toFixed(1))
+    : '—';
+
+  document.getElementById('stat-total').textContent = data.length;
+  document.getElementById('stat-pre').textContent   = avgPre  !== '—' ? avgPre  + '/10' : '—';
+  document.getElementById('stat-post').textContent  = avgPost !== '—' ? avgPost + '/10' : '—';
+  document.getElementById('stat-delta').textContent = avgDelta !== '—' ? (avgDelta > 0 ? '+' : '') + avgDelta : '—';
+
+  tbody.innerHTML = data.map((d, i) => {
+    const pre      = d.total_pre  > 0 ? d.puntaje_pre  : null;
+    const post     = d.total_post > 0 ? d.puntaje_post : null;
+    const delta    = (pre !== null && post !== null) ? post - pre : null;
+    const deltaStr = delta === null ? '<span class="delta neu">—</span>'
+                   : delta > 0 ? `<span class="delta pos">+${delta}</span>`
+                   : delta < 0 ? `<span class="delta neg">${delta}</span>`
+                   : '<span class="delta neu">0</span>';
+
+    const barPre  = pre  !== null ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill pre"  style="width:${pre*10}%"></div></div><span class="score-num pre">${pre}/10</span></div>`  : '<span style="color:#8b949e">—</span>';
+    const barPost = post !== null ? `<div class="score-bar"><div class="bar-bg"><div class="bar-fill post" style="width:${post*10}%"></div></div><span class="score-num post">${post}/10</span></div>` : '<span style="color:#8b949e">—</span>';
+
+    return `<tr>
+      <td style="color:#8b949e">${i+1}</td>
+      <td><strong>${d.nombre} ${d.apellido}</strong></td>
+      <td><span class="badge sem">${SEMESTRES[d.semestre] || d.semestre}</span></td>
+      <td>${barPre}</td>
+      <td>${barPost}</td>
+      <td>${deltaStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+load();
+</script>
+</body>
+</html>
