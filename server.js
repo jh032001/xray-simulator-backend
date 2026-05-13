@@ -19,4 +19,7 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en puerto ${PORT}`);
+    console.log('MYSQL_URL:', process.env.MYSQL_URL ? 'SET' : 'NOT SET');
+    console.log('MYSQLHOST:', process.env.MYSQLHOST || 'NOT SET');
+    console.log('MYSQLPORT:', process.env.MYSQLPORT || 'NOT SET');
 });
