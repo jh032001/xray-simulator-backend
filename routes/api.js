@@ -1,6 +1,81 @@
 const express = require('express');
 const router  = express.Router();
+const bcrypt  = require('bcrypt');
+const jwt     = require('jsonwebtoken');
 const db      = require('../db');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'cambiar_en_produccion';
+const SALT_ROUNDS = 10;
+
+// Índices 0-based de respuesta correcta (deben coincidir con QuizPanel.cs)
+const CORRECTAS = [1, 2, 3, 2, 3, 2, 3, 2, 3, 3];
+
+// ── Middleware auth ───────────────────────────────────────────────────────────
+
+function authRequired(req, res, next) {
+    const header = req.headers['authorization'];
+    const token  = header && header.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No autorizado' });
+    try {
+        req.docente = jwt.verify(token, JWT_SECRET);
+        next();
+    } catch {
+        res.status(401).json({ error: 'Token inválido' });
+    }
+}
+
+// ── Docentes ──────────────────────────────────────────────────────────────────
+
+// POST /api/docente/register
+router.post('/docente/register', async (req, res) => {
+    const { nombre, correo, password } = req.body;
+    if (!nombre || !correo || !password)
+        return res.status(400).json({ error: 'Faltan campos' });
+    if (password.length < 6)
+        return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+
+    try {
+        const hash = await bcrypt.hash(password, SALT_ROUNDS);
+        await db.execute(
+            'INSERT INTO docentes (nombre, correo, password_hash) VALUES (?, ?, ?)',
+            [nombre.trim(), correo.trim().toLowerCase(), hash]
+        );
+        res.json({ ok: true });
+    } catch (e) {
+        if (e.code === 'ER_DUP_ENTRY')
+            return res.status(409).json({ error: 'Ese correo ya está registrado' });
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// POST /api/docente/login
+router.post('/docente/login', async (req, res) => {
+    const { correo, password } = req.body;
+    if (!correo || !password)
+        return res.status(400).json({ error: 'Faltan campos' });
+
+    try {
+        const [rows] = await db.execute(
+            'SELECT * FROM docentes WHERE correo = ?',
+            [correo.trim().toLowerCase()]
+        );
+        if (!rows.length) return res.status(401).json({ error: 'Credenciales incorrectas' });
+
+        const ok = await bcrypt.compare(password, rows[0].password_hash);
+        if (!ok) return res.status(401).json({ error: 'Credenciales incorrectas' });
+
+        const token = jwt.sign(
+            { id: rows[0].id, nombre: rows[0].nombre },
+            JWT_SECRET,
+            { expiresIn: '8h' }
+        );
+        res.json({ token, nombre: rows[0].nombre });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ── Estudiantes (desde Unity) ─────────────────────────────────────────────────
 
 // POST /api/login — registrar estudiante, devuelve su id
 router.post('/login', async (req, res) => {
@@ -20,31 +95,30 @@ router.post('/login', async (req, res) => {
 });
 
 // POST /api/submit — enviar respuestas del cuestionario
-// Body: { estudiante_id, tipo: 'pre'|'post', respuestas: [0,2,1,...] }
 router.post('/submit', async (req, res) => {
     const { estudiante_id, tipo, respuestas } = req.body;
     if (!estudiante_id || !tipo || !respuestas)
         return res.status(400).json({ error: 'Faltan campos' });
 
-    const correctas = [1, 2, 1, 3, 3, 2, 1, 2, 1, 3]; // índices 0-based de respuesta correcta
-
     try {
         for (let i = 0; i < respuestas.length; i++) {
-            const esCorrecta = respuestas[i] === correctas[i];
+            const esCorrecta = respuestas[i] === CORRECTAS[i];
             await db.execute(
                 'INSERT INTO respuestas (estudiante_id, tipo, pregunta, respuesta, correcta) VALUES (?, ?, ?, ?, ?)',
                 [estudiante_id, tipo, i + 1, respuestas[i], esCorrecta]
             );
         }
-        const puntaje = respuestas.filter((r, i) => r === correctas[i]).length;
-        res.json({ puntaje, total: correctas.length });
+        const puntaje = respuestas.filter((r, i) => r === CORRECTAS[i]).length;
+        res.json({ puntaje, total: CORRECTAS.length });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
 });
 
-// GET /api/results — todos los resultados para el dashboard
-router.get('/results', async (req, res) => {
+// ── Dashboard (protegido) ─────────────────────────────────────────────────────
+
+// GET /api/results — requiere token de docente
+router.get('/results', authRequired, async (req, res) => {
     try {
         const [rows] = await db.execute(`
             SELECT
