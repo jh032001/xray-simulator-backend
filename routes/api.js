@@ -118,6 +118,38 @@ router.post('/submit', async (req, res) => {
 
 // ── Dashboard (protegido) ─────────────────────────────────────────────────────
 
+// DELETE /api/estudiante/:id — eliminar estudiante y sus respuestas
+router.delete('/estudiante/:id', authRequired, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'ID inválido' });
+    try {
+        await db.execute('DELETE FROM respuestas  WHERE estudiante_id = ?', [id]);
+        await db.execute('DELETE FROM estudiantes WHERE id = ?', [id]);
+        res.json({ ok: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GET /api/question-stats — aciertos por pregunta y tipo
+router.get('/question-stats', authRequired, async (req, res) => {
+    try {
+        const [rows] = await db.execute(`
+            SELECT
+                pregunta,
+                tipo,
+                COUNT(*)                                          AS total,
+                SUM(CASE WHEN correcta = 1 THEN 1 ELSE 0 END)    AS correctas
+            FROM respuestas
+            GROUP BY pregunta, tipo
+            ORDER BY pregunta, tipo
+        `);
+        res.json(rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // GET /api/results — requiere token de docente
 router.get('/results', authRequired, async (req, res) => {
     try {
