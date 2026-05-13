@@ -42,9 +42,10 @@ router.post('/docente/register', async (req, res) => {
         );
         res.json({ ok: true });
     } catch (e) {
+        console.error('[register]', e);
         if (e.code === 'ER_DUP_ENTRY')
             return res.status(409).json({ error: 'Ese correo ya está registrado' });
-        res.status(500).json({ error: e.message });
+        res.status(500).json({ error: e.message || JSON.stringify(e) });
     }
 });
 
