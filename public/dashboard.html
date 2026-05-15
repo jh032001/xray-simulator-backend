@@ -579,9 +579,9 @@ function renderStats() {
   const ambos   = d.filter(x=>x.total_pre>0&&x.total_post>0);
   const avg = arr => arr.length ? (arr.reduce((s,x)=>s+x,0)/arr.length).toFixed(1) : null;
 
-  const aPre  = avg(conPre.map(x=>x.puntaje_pre));
-  const aPost = avg(conPost.map(x=>x.puntaje_post));
-  const aDelta= avg(ambos.map(x=>x.puntaje_post-x.puntaje_pre));
+  const aPre  = avg(conPre.map(x=>+x.puntaje_pre));
+  const aPost = avg(conPost.map(x=>+x.puntaje_post));
+  const aDelta= avg(ambos.map(x=>+x.puntaje_post - +x.puntaje_pre));
 
   document.getElementById('s-total').textContent    = d.length;
   document.getElementById('s-complete').textContent = ambos.length;
@@ -605,9 +605,9 @@ function renderOverviewChart() {
   _chartOv = new Chart(ctx,{
     type:'bar',
     data:{labels,datasets:[
-      {label:'Pre-test', data:data.map(d=>d.total_pre>0?d.puntaje_pre:null),
+      {label:'Pre-test', data:data.map(d=>d.total_pre>0?+d.puntaje_pre:null),
        backgroundColor:'rgba(99,102,241,.75)',borderRadius:5,borderSkipped:false},
-      {label:'Post-test',data:data.map(d=>d.total_post>0?d.puntaje_post:null),
+      {label:'Post-test',data:data.map(d=>d.total_post>0?+d.puntaje_post:null),
        backgroundColor:'rgba(16,185,129,.75)',borderRadius:5,borderSkipped:false}
     ]},
     options:{
@@ -630,8 +630,8 @@ function renderTable(data) {
     return;
   }
   tbody.innerHTML = data.map((d,i)=>{
-    const pre  = d.total_pre>0  ? d.puntaje_pre  : null;
-    const post = d.total_post>0 ? d.puntaje_post : null;
+    const pre  = d.total_pre>0  ? +d.puntaje_pre  : null;
+    const post = d.total_post>0 ? +d.puntaje_post : null;
     const delta = (pre!==null&&post!==null) ? post-pre : null;
 
     const estado = post!==null ? '<span class="badge complete">Completado</span>'
