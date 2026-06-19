@@ -179,6 +179,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 }
 .search-box input{background:transparent;border:none;outline:none;color:var(--text);font-size:.83rem;width:170px;}
 .search-box input::placeholder{color:var(--muted);}
+.sem-filter{
+  padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:7px;
+  color:var(--text);font-size:.83rem;outline:none;cursor:pointer;
+}
+.sem-filter option{background:var(--surf);}
 table{width:100%;border-collapse:collapse;}
 th{
   padding:11px 16px;text-align:left;font-size:.7rem;color:var(--muted);
@@ -421,10 +426,22 @@ tr:hover td{background:rgba(255,255,255,.018);}
         <div class="table-wrap">
           <div class="table-header">
             <h3>Listado de estudiantes</h3>
-            <div class="search-box">
-              <span style="color:var(--muted)">🔍</span>
-              <input type="text" id="search-input" placeholder="Buscar por nombre..."
-                oninput="filterTable()">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <div class="search-box">
+                <span style="color:var(--muted)">🔍</span>
+                <input type="text" id="search-input" placeholder="Buscar por nombre..."
+                  oninput="filterTable()">
+              </div>
+              <select class="sem-filter" id="sem-filter" onchange="filterTable()">
+                <option value="">Todos los semestres</option>
+                <option value="1">Primero</option>
+                <option value="2">Segundo</option>
+                <option value="3">Tercero</option>
+                <option value="4">Cuarto</option>
+                <option value="5">Quinto</option>
+                <option value="6">Sexto</option>
+                <option value="7">Séptimo</option>
+              </select>
             </div>
           </div>
           <table>
@@ -650,7 +667,7 @@ function renderTable(data) {
       : delta<0 ? `<span class="delta neg">▼ ${delta}</span>`
       : '<span class="delta neu">= 0</span>';
 
-    return `<tr data-name="${d.nombre} ${d.apellido}">
+    return `<tr data-name="${d.nombre} ${d.apellido}" data-sem="${d.semestre}">
       <td style="color:var(--muted)">${i+1}</td>
       <td><strong>${d.nombre} ${d.apellido}</strong></td>
       <td><span class="badge sem">${SEMESTRES[d.semestre]||d.semestre}</span></td>
@@ -664,9 +681,12 @@ function renderTable(data) {
 }
 
 function filterTable() {
-  const q = document.getElementById('search-input').value.toLowerCase();
+  const q   = document.getElementById('search-input').value.toLowerCase();
+  const sem = document.getElementById('sem-filter').value;
   document.querySelectorAll('#tabla tr[data-name]').forEach(tr=>{
-    tr.style.display = tr.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+    const nameMatch = tr.dataset.name.toLowerCase().includes(q);
+    const semMatch  = !sem || tr.dataset.sem === sem;
+    tr.style.display = nameMatch && semMatch ? '' : 'none';
   });
 }
 

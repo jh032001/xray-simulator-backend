@@ -85,11 +85,33 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ error: 'Faltan campos' });
 
     try {
+        const [existing] = await db.execute(
+            'SELECT id FROM estudiantes WHERE LOWER(nombre) = LOWER(?) AND LOWER(apellido) = LOWER(?)',
+            [nombre.trim(), apellido.trim()]
+        );
+        if (existing.length > 0)
+            return res.status(409).json({ error: 'ya_existe', estudiante_id: existing[0].id });
+
         const [result] = await db.execute(
             'INSERT INTO estudiantes (nombre, apellido, semestre) VALUES (?, ?, ?)',
             [nombre.trim(), apellido.trim(), semestre]
         );
         res.json({ estudiante_id: result.insertId });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// POST /api/estudiante/:id/reset — borrar respuestas y actualizar semestre
+router.post('/estudiante/:id/reset', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'ID inválido' });
+    try {
+        await db.execute('DELETE FROM respuestas WHERE estudiante_id = ?', [id]);
+        const { semestre } = req.body;
+        if (semestre)
+            await db.execute('UPDATE estudiantes SET semestre = ? WHERE id = ?', [semestre, id]);
+        res.json({ ok: true, estudiante_id: id });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
