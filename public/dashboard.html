@@ -413,6 +413,11 @@ tr:hover td{background:rgba(255,255,255,.018);}
             <div class="stat-val" id="s-delta">—</div>
             <div class="stat-label">Mejora promedio</div>
           </div>
+          <div class="stat purple">
+            <div class="stat-icon">🖼️</div>
+            <div class="stat-val" id="s-pdi">—</div>
+            <div class="stat-label">Bloque PDI (pre → post)</div>
+          </div>
         </div>
         <div class="chart-card">
           <h3>Pre-test vs Post-test por estudiante</h3>
@@ -448,7 +453,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
             <thead>
               <tr>
                 <th>#</th><th>Estudiante</th><th>Semestre</th><th>Estado</th>
-                <th>Pre-test /10</th><th>Post-test /10</th><th>Mejora</th><th></th>
+                <th>Pre-test /10</th><th>Post-test /10</th><th>Mejora</th><th>PDI /5</th><th></th>
               </tr>
             </thead>
             <tbody id="tabla"></tbody>
@@ -464,6 +469,13 @@ tr:hover td{background:rgba(255,255,255,.018);}
           <div class="chart-box"><canvas id="chart-questions"></canvas></div>
         </div>
         <div class="q-cards" id="q-cards"></div>
+
+        <div class="chart-card" style="margin-top:24px">
+          <h3>Bloque PDI — Pre vs Post</h3>
+          <p>Procesamiento digital de imágenes · 5 preguntas con puntaje aparte (no suman al puntaje /10)</p>
+          <div class="chart-box"><canvas id="chart-questions-pdi"></canvas></div>
+        </div>
+        <div class="q-cards" id="q-cards-pdi"></div>
       </div>
     </main>
   </div>
@@ -483,13 +495,21 @@ const PREGUNTAS = [
   '¿Qué componente delimita físicamente el haz?',
   'Sube mA, baja tiempo, mismo mAs: ¿qué cambia?'
 ];
+// Bloque PDI: se guarda como preguntas 11–15, con puntaje aparte
+const PREGUNTAS_PDI = [
+  'Ruido sal y pimienta: ¿qué filtro es el más adecuado?',
+  'Imagen gris y "plana": ¿qué ajuste mejora su calidad?',
+  '¿Efecto principal del filtro de realce (máscara de desenfoque)?',
+  'El ajuste de gamma modifica principalmente…',
+  'Imagen oscura de manera uniforme: ¿qué ajuste la corrige?'
+];
 
 let _token   = localStorage.getItem('token');
 let _nombre  = localStorage.getItem('docente_nombre');
 let _allData = [];
 let _qStats  = [];
 let _pendingDeleteId = null;
-let _chartOv = null, _chartQ = null;
+let _chartOv = null, _chartQ = null, _chartQPdi = null;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -610,6 +630,19 @@ function renderStats() {
     el.textContent  = (parseFloat(aDelta)>0?'+':'')+aDelta;
     el.style.color  = parseFloat(aDelta)>0?'#34d399':parseFloat(aDelta)<0?'#fca5a5':'var(--text)';
   } else { el.textContent='—'; el.style.color=''; }
+
+  const pdiPre  = avg(d.filter(x=>+x.total_pdi_pre>0).map(x=>+x.pdi_pre));
+  const pdiPost = avg(d.filter(x=>+x.total_pdi_post>0).map(x=>+x.pdi_post));
+  document.getElementById('s-pdi').textContent =
+    (pdiPre||pdiPost) ? `${pdiPre??'—'} → ${pdiPost??'—'}` : '—';
+}
+
+function pdiCell(d) {
+  const pre  = +d.total_pdi_pre  > 0 ? +d.pdi_pre  : null;
+  const post = +d.total_pdi_post > 0 ? +d.pdi_post : null;
+  if (pre===null && post===null) return '<span style="color:var(--muted);font-size:.77rem">No aplicado</span>';
+  const f = (v,c) => v===null ? '<span style="color:var(--muted)">—</span>' : `<span class="snum ${c}">${v}/5</span>`;
+  return `${f(pre,'pre')} <span style="color:var(--muted)">→</span> ${f(post,'post')}`;
 }
 
 // ── Overview chart ────────────────────────────────────────────────────────────
@@ -643,7 +676,7 @@ function renderOverviewChart() {
 function renderTable(data) {
   const tbody = document.getElementById('tabla');
   if (!data.length){
-    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="ei">📭</div><p>Aún no hay estudiantes registrados</p></div></td></tr>';
+    tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="ei">📭</div><p>Aún no hay estudiantes registrados</p></div></td></tr>';
     return;
   }
   tbody.innerHTML = data.map((d,i)=>{
@@ -675,6 +708,7 @@ function renderTable(data) {
       <td>${barPre}</td>
       <td>${barPost}</td>
       <td>${dHtml}</td>
+      <td>${pdiCell(d)}</td>
       <td><button class="del-btn" onclick="askDelete(${d.id},'${d.nombre} ${d.apellido}')">🗑</button></td>
     </tr>`;
   }).join('');
@@ -714,28 +748,35 @@ async function confirmDelete(){
 
 // ── Question chart ────────────────────────────────────────────────────────────
 
-function buildQArrays() {
+// offset = número de la primera pregunta del bloque menos 1 (0: originales, 10: bloque PDI)
+function buildQArrays(offset=0, count=10) {
   const pre=[],post=[],preTot=[],postTot=[];
-  for(let i=0;i<10;i++){pre.push(0);post.push(0);preTot.push(0);postTot.push(0);}
+  for(let i=0;i<count;i++){pre.push(0);post.push(0);preTot.push(0);postTot.push(0);}
   _qStats.forEach(r=>{
-    const i=r.pregunta-1;
-    if(r.tipo==='pre') {pre[i]=r.correctas;preTot[i]=r.total;}
-    if(r.tipo==='post'){post[i]=r.correctas;postTot[i]=r.total;}
+    const i=r.pregunta-1-offset;
+    if(i<0||i>=count) return;
+    if(r.tipo==='pre') {pre[i]=+r.correctas;preTot[i]=+r.total;}
+    if(r.tipo==='post'){post[i]=+r.correctas;postTot[i]=+r.total;}
   });
   return {pre,post,preTot,postTot};
 }
 
 function renderQuestionChart() {
-  const {pre,post,preTot,postTot} = buildQArrays();
+  _chartQ    = drawQuestionChart('chart-questions',     _chartQ,    PREGUNTAS,     0,  'P');
+  _chartQPdi = drawQuestionChart('chart-questions-pdi', _chartQPdi, PREGUNTAS_PDI, 10, 'PDI');
+}
+
+function drawQuestionChart(canvasId, chart, preguntas, offset, prefix) {
+  const {pre,post,preTot,postTot} = buildQArrays(offset, preguntas.length);
   const prePct  = pre.map((c,i)  => preTot[i]  ? Math.round(c/preTot[i]*100)  : 0);
   const postPct = post.map((c,i) => postTot[i] ? Math.round(c/postTot[i]*100) : 0);
 
-  const ctx = document.getElementById('chart-questions').getContext('2d');
-  if (_chartQ) _chartQ.destroy();
-  _chartQ = new Chart(ctx,{
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if (chart) chart.destroy();
+  return new Chart(ctx,{
     type:'bar',
     data:{
-      labels:PREGUNTAS.map((_,i)=>`P${i+1}`),
+      labels:preguntas.map((_,i)=>`${prefix}${i+1}`),
       datasets:[
         {label:'Pre-test', data:prePct,  backgroundColor:'rgba(99,102,241,.75)',borderRadius:5,borderSkipped:false},
         {label:'Post-test',data:postPct, backgroundColor:'rgba(16,185,129,.75)',borderRadius:5,borderSkipped:false}
@@ -756,14 +797,19 @@ function renderQuestionChart() {
 }
 
 function renderQuestionCards() {
-  const {pre,post,preTot,postTot} = buildQArrays();
-  document.getElementById('q-cards').innerHTML = PREGUNTAS.map((q,i)=>{
+  document.getElementById('q-cards').innerHTML     = questionCards(PREGUNTAS,     0,  'P');
+  document.getElementById('q-cards-pdi').innerHTML = questionCards(PREGUNTAS_PDI, 10, 'PDI');
+}
+
+function questionCards(preguntas, offset, prefix) {
+  const {pre,post,preTot,postTot} = buildQArrays(offset, preguntas.length);
+  return preguntas.map((q,i)=>{
     const pp  = preTot[i]  ? Math.round(pre[i]/preTot[i]*100)   : null;
     const qp  = postTot[i] ? Math.round(post[i]/postTot[i]*100) : null;
     const pStr  = pp!==null  ? `${pre[i]}/${preTot[i]}  (${pp}%)`   : '—';
     const qStr  = qp!==null  ? `${post[i]}/${postTot[i]}  (${qp}%)` : '—';
     return `<div class="q-card">
-      <div class="q-num">P${i+1}</div>
+      <div class="q-num">${prefix}${i+1}</div>
       <div class="q-text">${q}</div>
       <div class="q-row">
         <span class="q-tag">PRE</span>

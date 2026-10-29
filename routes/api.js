@@ -8,7 +8,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'cambiar_en_produccion';
 const SALT_ROUNDS = 10;
 
 // Índices 0-based de respuesta correcta (deben coincidir con QuizPanel.cs)
-const CORRECTAS = [1, 2, 3, 2, 3, 2, 3, 2, 3, 3];
+const CORRECTAS     = [1, 2, 3, 2, 3, 2, 3, 2, 3, 3];   // preguntas 1–10 (cuestionario original)
+const CORRECTAS_PDI = [1, 0, 1, 1, 2];                  // preguntas 11–15 (bloque PDI, puntaje aparte)
+const TODAS         = CORRECTAS.concat(CORRECTAS_PDI);
 
 // ── Middleware auth ───────────────────────────────────────────────────────────
 
@@ -124,15 +126,18 @@ router.post('/submit', async (req, res) => {
         return res.status(400).json({ error: 'Faltan campos' });
 
     try {
-        for (let i = 0; i < respuestas.length; i++) {
-            const esCorrecta = respuestas[i] === CORRECTAS[i];
+        const n = Math.min(respuestas.length, TODAS.length);
+        for (let i = 0; i < n; i++) {
+            const esCorrecta = respuestas[i] === TODAS[i];
             await db.execute(
                 'INSERT INTO respuestas (estudiante_id, tipo, pregunta, respuesta, correcta) VALUES (?, ?, ?, ?, ?)',
                 [estudiante_id, tipo, i + 1, respuestas[i], esCorrecta]
             );
         }
-        const puntaje = respuestas.filter((r, i) => r === CORRECTAS[i]).length;
-        res.json({ puntaje, total: CORRECTAS.length });
+        const puntaje     = respuestas.slice(0, CORRECTAS.length).filter((r, i) => r === CORRECTAS[i]).length;
+        const respPdi     = respuestas.slice(CORRECTAS.length, TODAS.length);
+        const puntaje_pdi = respPdi.filter((r, i) => r === CORRECTAS_PDI[i]).length;
+        res.json({ puntaje, total: CORRECTAS.length, puntaje_pdi, total_pdi: respPdi.length });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -181,10 +186,14 @@ router.get('/results', authRequired, async (req, res) => {
                 e.nombre,
                 e.apellido,
                 e.semestre,
-                SUM(CASE WHEN r.tipo = 'pre'  AND r.correcta = 1 THEN 1 ELSE 0 END) AS puntaje_pre,
-                SUM(CASE WHEN r.tipo = 'post' AND r.correcta = 1 THEN 1 ELSE 0 END) AS puntaje_post,
-                COUNT(CASE WHEN r.tipo = 'pre'  THEN 1 END) AS total_pre,
-                COUNT(CASE WHEN r.tipo = 'post' THEN 1 END) AS total_post
+                SUM(CASE WHEN r.tipo = 'pre'  AND r.pregunta <= 10 AND r.correcta = 1 THEN 1 ELSE 0 END) AS puntaje_pre,
+                SUM(CASE WHEN r.tipo = 'post' AND r.pregunta <= 10 AND r.correcta = 1 THEN 1 ELSE 0 END) AS puntaje_post,
+                COUNT(CASE WHEN r.tipo = 'pre'  AND r.pregunta <= 10 THEN 1 END) AS total_pre,
+                COUNT(CASE WHEN r.tipo = 'post' AND r.pregunta <= 10 THEN 1 END) AS total_post,
+                SUM(CASE WHEN r.tipo = 'pre'  AND r.pregunta > 10 AND r.correcta = 1 THEN 1 ELSE 0 END) AS pdi_pre,
+                SUM(CASE WHEN r.tipo = 'post' AND r.pregunta > 10 AND r.correcta = 1 THEN 1 ELSE 0 END) AS pdi_post,
+                COUNT(CASE WHEN r.tipo = 'pre'  AND r.pregunta > 10 THEN 1 END) AS total_pdi_pre,
+                COUNT(CASE WHEN r.tipo = 'post' AND r.pregunta > 10 THEN 1 END) AS total_pdi_post
             FROM estudiantes e
             LEFT JOIN respuestas r ON r.estudiante_id = e.id
             GROUP BY e.id
