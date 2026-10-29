@@ -120,10 +120,14 @@ router.post('/estudiante/:id/reset', async (req, res) => {
 });
 
 // POST /api/submit — enviar respuestas del cuestionario
+// Opcional: "desde": 11 envía solo el bloque PDI (preguntas 11–15) de un estudiante ya registrado,
+// sin repetir sus 10 respuestas originales.
 router.post('/submit', async (req, res) => {
-    const { estudiante_id, tipo, respuestas } = req.body;
+    const { estudiante_id, tipo, respuestas, desde } = req.body;
     if (!estudiante_id || !tipo || !respuestas)
         return res.status(400).json({ error: 'Faltan campos' });
+
+    if (desde !== undefined) return submitPdi(req, res);
 
     try {
         const n = Math.min(respuestas.length, TODAS.length);
@@ -142,6 +146,36 @@ router.post('/submit', async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+
+async function submitPdi(req, res) {
+    const { estudiante_id, tipo, respuestas, desde } = req.body;
+    if (parseInt(desde) !== CORRECTAS.length + 1)
+        return res.status(400).json({ error: `"desde" debe ser ${CORRECTAS.length + 1}` });
+    if (!['pre', 'post'].includes(tipo) || !Array.isArray(respuestas) || respuestas.length !== CORRECTAS_PDI.length)
+        return res.status(400).json({ error: `Se esperan ${CORRECTAS_PDI.length} respuestas y tipo pre o post` });
+
+    try {
+        const [est] = await db.execute('SELECT id FROM estudiantes WHERE id = ?', [estudiante_id]);
+        if (!est.length) return res.status(404).json({ error: 'Estudiante no encontrado' });
+
+        const [prev] = await db.execute(
+            'SELECT COUNT(*) AS n FROM respuestas WHERE estudiante_id = ? AND tipo = ? AND pregunta > ?',
+            [estudiante_id, tipo, CORRECTAS.length]
+        );
+        if (prev[0].n > 0) return res.status(409).json({ error: 'ya_registrado' });
+
+        for (let i = 0; i < CORRECTAS_PDI.length; i++) {
+            await db.execute(
+                'INSERT INTO respuestas (estudiante_id, tipo, pregunta, respuesta, correcta) VALUES (?, ?, ?, ?, ?)',
+                [estudiante_id, tipo, CORRECTAS.length + i + 1, respuestas[i], respuestas[i] === CORRECTAS_PDI[i]]
+            );
+        }
+        const puntaje_pdi = respuestas.filter((r, i) => r === CORRECTAS_PDI[i]).length;
+        res.json({ puntaje_pdi, total_pdi: CORRECTAS_PDI.length });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+}
 
 // ── Dashboard (protegido) ─────────────────────────────────────────────────────
 
