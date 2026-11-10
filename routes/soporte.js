@@ -103,6 +103,23 @@ router.post('/tecnico/login', async (req, res) => {
     }
 });
 
+// Docente: crear la cuenta del servicio técnico si todavía no existe (una sola vez).
+// Alternativa a la variable TECNICO_PASSWORD cuando no se puede configurar en el servidor.
+router.post('/tecnico/crear', docenteRequired, async (req, res) => {
+    const password = String(req.body.password || '');
+    if (password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+    try {
+        const [t] = await db.execute('SELECT id FROM tecnicos WHERE correo = ?', [SOPORTE.correo]);
+        if (t.length) return res.status(409).json({ error: 'La cuenta de servicio técnico ya existe' });
+        const hash = await bcrypt.hash(password, 10);
+        await db.execute('INSERT INTO tecnicos (nombre, correo, password_hash) VALUES (?, ?, ?)',
+            ['Servicio técnico', SOPORTE.correo, hash]);
+        res.json({ ok: true, correo: SOPORTE.correo });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // ── Contacto ──────────────────────────────────────────────────────────────────
 
 router.get('/soporte/contacto', usuarioRequired, (req, res) => res.json(SOPORTE));
