@@ -4,7 +4,7 @@ const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const db      = require('../db');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'cambiar_en_produccion';
+const { JWT_SECRET, docenteRequired } = require('../auth');
 const SALT_ROUNDS = 10;
 
 // Índices 0-based de respuesta correcta (deben coincidir con QuizPanel.cs)
@@ -14,17 +14,8 @@ const TODAS         = CORRECTAS.concat(CORRECTAS_PDI);
 
 // ── Middleware auth ───────────────────────────────────────────────────────────
 
-function authRequired(req, res, next) {
-    const header = req.headers['authorization'];
-    const token  = header && header.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'No autorizado' });
-    try {
-        req.docente = jwt.verify(token, JWT_SECRET);
-        next();
-    } catch {
-        res.status(401).json({ error: 'Token inválido' });
-    }
-}
+// Rutas del dashboard docente: el token del servicio técnico no tiene acceso a datos de estudiantes
+const authRequired = docenteRequired;
 
 // ── Docentes ──────────────────────────────────────────────────────────────────
 

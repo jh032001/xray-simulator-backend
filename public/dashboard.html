@@ -281,6 +281,73 @@ tr:hover td{background:rgba(255,255,255,.018);}
   border-radius:8px;color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;transition:background .2s;
 }
 .btn-delete:hover{background:#dc2626;}
+
+/* ── Soporte técnico ── */
+.sup-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start;}
+@media(max-width:1000px){.sup-grid{grid-template-columns:1fr;}}
+.card{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;}
+.card h3{font-size:.95rem;font-weight:700;margin-bottom:4px;}
+.card .hint{font-size:.78rem;color:var(--muted);margin-bottom:16px;}
+.faq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.faq-opt{
+  background:var(--surf2);border:1.5px solid var(--border);border-radius:10px;
+  padding:13px 14px;cursor:pointer;transition:all .15s;display:flex;gap:10px;align-items:center;
+  font-size:.84rem;font-weight:600;
+}
+.faq-opt:hover{border-color:rgba(99,102,241,.5);}
+.faq-opt.sel{border-color:var(--pri);background:var(--pri-glow);color:#c7d2fe;}
+.faq-opt .fi{font-size:18px;}
+.faq-help{margin-top:16px;display:none;}
+.faq-help.show{display:block;}
+.steps{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px 14px 34px;margin-bottom:14px;}
+.steps li{font-size:.84rem;line-height:1.55;margin-bottom:5px;color:#cbd5e1;}
+.steps-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--green);margin-bottom:8px;}
+textarea.inp{
+  width:100%;min-height:84px;resize:vertical;padding:11px 14px;
+  background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:.88rem;font-family:inherit;outline:none;
+}
+textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);}
+.row-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.btn-pri{
+  padding:10px 16px;background:linear-gradient(135deg,#6366f1,#818cf8);border:none;border-radius:8px;
+  color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;
+}
+.btn-pri:disabled{opacity:.5;cursor:default;}
+.btn-ok{padding:10px 16px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.4);border-radius:8px;color:#34d399;font-size:.86rem;font-weight:600;cursor:pointer;}
+.btn-wa{
+  display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border-radius:8px;
+  background:#16a34a;color:#fff;font-size:.84rem;font-weight:700;text-decoration:none;
+}
+.sup-msg{font-size:.82rem;margin-top:10px;min-height:16px;}
+.sup-msg.ok{color:#6ee7b7;}.sup-msg.error{color:#fca5a5;}
+.contact-line{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:.86rem;}
+.contact-line:last-of-type{border-bottom:none;}
+.contact-line .ci2{width:32px;height:32px;border-radius:8px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.contact-line small{display:block;color:var(--muted);font-size:.7rem;}
+.contact-line a{color:var(--text);text-decoration:none;font-weight:600;}
+
+.rep{background:var(--surf);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+.rep-head{padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;flex-wrap:wrap;}
+.rep-head:hover{background:rgba(255,255,255,.02);}
+.rep-id{font-size:.72rem;color:var(--muted);font-weight:700;}
+.rep-cat{font-weight:700;font-size:.9rem;flex:1;min-width:160px;}
+.rep-meta{font-size:.74rem;color:var(--muted);}
+.est{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.est.pendiente{background:rgba(245,158,11,.12);color:#fbbf24;}
+.est.en_revision{background:rgba(99,102,241,.14);color:#a5b4fc;}
+.est.resuelto{background:rgba(16,185,129,.12);color:#34d399;}
+.rep-body{display:none;padding:4px 18px 18px;border-top:1px solid var(--border);}
+.rep.open .rep-body{display:block;}
+.msg{max-width:78%;padding:10px 13px;border-radius:10px;margin:10px 0;font-size:.85rem;line-height:1.5;white-space:pre-wrap;word-wrap:break-word;}
+.msg small{display:block;font-size:.68rem;color:var(--muted);margin-bottom:3px;font-weight:600;}
+.msg.docente{background:var(--surf2);}
+.msg.tecnico{background:rgba(99,102,241,.13);margin-left:auto;}
+.msg.desc{background:var(--bg);border:1px dashed var(--border);max-width:100%;}
+.reply-row{display:flex;gap:8px;margin-top:10px;align-items:flex-end;}
+.reply-row textarea{min-height:46px;}
+.est-select{padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:.8rem;}
+.badge-count{margin-left:auto;background:var(--amber);color:#111;font-size:.66rem;font-weight:800;padding:1px 7px;border-radius:10px;}
 </style>
 </head>
 <body>
@@ -314,8 +381,9 @@ tr:hover td{background:rgba(255,255,255,.018);}
     </div>
     <div class="auth-body">
       <div class="tab-row">
-        <div class="tab-pill active" onclick="switchTab('login')">Iniciar sesión</div>
-        <div class="tab-pill" onclick="switchTab('register')">Registrarse</div>
+        <div class="tab-pill active" data-tab="login"    onclick="switchTab('login')">Iniciar sesión</div>
+        <div class="tab-pill"        data-tab="register" onclick="switchTab('register')">Registrarse</div>
+        <div class="tab-pill"        data-tab="tecnico"  onclick="switchTab('tecnico')">Servicio técnico</div>
       </div>
 
       <div id="tab-login">
@@ -339,6 +407,16 @@ tr:hover td{background:rgba(255,255,255,.018);}
         <button class="auth-btn" onclick="doRegister()">Crear cuenta</button>
         <div class="auth-msg" id="reg-msg"></div>
       </div>
+
+      <div id="tab-tecnico" style="display:none">
+        <div class="field"><label>Correo de servicio técnico</label>
+          <input type="email" id="tec-correo" placeholder="servicio@…"></div>
+        <div class="field"><label>Contraseña</label>
+          <input type="password" id="tec-password" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter')doLoginTecnico()"></div>
+        <button class="auth-btn" onclick="doLoginTecnico()">Ingresar al panel técnico</button>
+        <div class="auth-msg" id="tec-msg"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -353,15 +431,27 @@ tr:hover td{background:rgba(255,255,255,.018);}
         <div class="sb-brand">VR Rayos X<small>UNIVALLE</small></div>
       </div>
       <nav class="sb-nav">
-        <div class="nav-section">Vistas</div>
-        <div class="nav-item active" onclick="showSection('resumen')"    id="nav-resumen">
-          <span class="ni">📊</span> Resumen
+        <div class="solo-docente">
+          <div class="nav-section">Vistas</div>
+          <div class="nav-item active" onclick="showSection('resumen')"    id="nav-resumen">
+            <span class="ni">📊</span> Resumen
+          </div>
+          <div class="nav-item" onclick="showSection('estudiantes')" id="nav-estudiantes">
+            <span class="ni">👥</span> Estudiantes
+          </div>
+          <div class="nav-item" onclick="showSection('preguntas')"   id="nav-preguntas">
+            <span class="ni">📋</span> Por pregunta
+          </div>
+          <div class="nav-section">Ayuda</div>
+          <div class="nav-item" onclick="showSection('soporte')" id="nav-soporte">
+            <span class="ni">🛠️</span> Soporte técnico <span class="badge-count" id="nav-soporte-count" style="display:none"></span>
+          </div>
         </div>
-        <div class="nav-item" onclick="showSection('estudiantes')" id="nav-estudiantes">
-          <span class="ni">👥</span> Estudiantes
-        </div>
-        <div class="nav-item" onclick="showSection('preguntas')"   id="nav-preguntas">
-          <span class="ni">📋</span> Por pregunta
+        <div class="solo-tecnico" style="display:none">
+          <div class="nav-section">Servicio técnico</div>
+          <div class="nav-item" onclick="showSection('reportes')" id="nav-reportes">
+            <span class="ni">📨</span> Reportes recibidos <span class="badge-count" id="nav-reportes-count" style="display:none"></span>
+          </div>
         </div>
       </nav>
       <div class="sb-footer">
@@ -369,7 +459,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
           <div class="sb-avatar" id="sb-avatar">D</div>
           <div>
             <div class="sb-uname" id="sb-uname">—</div>
-            <div class="sb-role">Docente</div>
+            <div class="sb-role" id="sb-role">Docente</div>
           </div>
         </div>
         <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
@@ -477,6 +567,58 @@ tr:hover td{background:rgba(255,255,255,.018);}
         </div>
         <div class="q-cards" id="q-cards-pdi"></div>
       </div>
+
+      <!-- Soporte técnico (docente) -->
+      <div class="section" id="sec-soporte">
+        <div class="sup-grid">
+          <div>
+            <div class="card">
+              <h3>Reportar una falla</h3>
+              <div class="hint">Elige el problema: primero verás los pasos para resolverlo en el momento. Si no se soluciona, envíalo al servicio técnico.</div>
+              <div class="faq-grid" id="faq-grid"></div>
+              <div class="faq-help" id="faq-help">
+                <div id="faq-steps"></div>
+                <div class="field" style="margin-bottom:0">
+                  <label id="faq-desc-label">Detalle (opcional)</label>
+                  <textarea class="inp" id="faq-desc" maxlength="4000"
+                    placeholder="Ej.: Ingeniero, la aplicación está muy lenta desde la segunda sesión…"></textarea>
+                </div>
+                <div class="row-btns">
+                  <button class="btn-pri" id="btn-enviar-reporte" onclick="enviarReporte()">Enviar reporte al técnico</button>
+                  <button class="btn-ok" id="btn-solucionado" onclick="faqSolucionado()">✓ Ya se solucionó</button>
+                </div>
+                <div class="sup-msg" id="sup-msg"></div>
+              </div>
+            </div>
+
+            <div class="card" style="padding-bottom:8px">
+              <h3>Mis reportes</h3>
+              <div class="hint">Aquí aparecen las respuestas del servicio técnico.</div>
+              <div id="mis-reportes"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Contacto de servicio técnico</h3>
+            <div class="hint">Para casos urgentes también puedes escribir directamente.</div>
+            <div class="contact-line"><div class="ci2">📱</div>
+              <div><small>WhatsApp / teléfono</small><a id="ct-tel" href="#" target="_blank">—</a></div></div>
+            <div class="contact-line"><div class="ci2">✉️</div>
+              <div><small>Correo</small><a id="ct-mail" href="#">—</a></div></div>
+            <div class="row-btns"><a class="btn-wa" id="ct-wa" href="#" target="_blank">💬 Escribir por WhatsApp</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reportes recibidos (servicio técnico) -->
+      <div class="section" id="sec-reportes">
+        <div class="stats-grid">
+          <div class="stat amber"><div class="stat-icon">⏳</div><div class="stat-val" id="t-pend">—</div><div class="stat-label">Pendientes</div></div>
+          <div class="stat blue"><div class="stat-icon">🔍</div><div class="stat-val" id="t-rev">—</div><div class="stat-label">En revisión</div></div>
+          <div class="stat green"><div class="stat-icon">✅</div><div class="stat-val" id="t-res">—</div><div class="stat-label">Resueltos</div></div>
+        </div>
+        <div id="reportes-tecnico"></div>
+      </div>
     </main>
   </div>
 </div>
@@ -506,6 +648,50 @@ const PREGUNTAS_PDI = [
 
 let _token   = localStorage.getItem('token');
 let _nombre  = localStorage.getItem('docente_nombre');
+let _rol     = localStorage.getItem('rol') || 'docente';
+let _reportes = [];
+let _abiertos = new Set();      // reportes desplegados (se conservan al refrescar)
+let _faqSel   = null;
+let _contacto = null;
+let _poll     = null;
+
+// Problemas frecuentes: pasos que el docente puede intentar antes de enviar el reporte
+const FAQ = [
+  {id:'mandos', icon:'🎮', titulo:'Los mandos no responden', pasos:[
+    'Presiona el botón Meta (☰ / logo) del mando para despertarlo.',
+    'Revisa la pila AA: sácala, vuelve a colocarla o cámbiala por una nueva.',
+    'Comprueba que no haya otra persona cerca usando otro visor con mandos emparejados.',
+    'Reinicia el visor: mantén presionado el botón de encendido → Reiniciar.',
+    'Si sigue igual: en la app Meta Horizon del celular → Dispositivos → Mandos → desemparejar y volver a emparejar.']},
+  {id:'internet', icon:'📶', titulo:'El visor no se conecta a internet', pasos:[
+    'En el visor: Configuración rápida → Wi-Fi. Verifica que esté conectado a la red correcta.',
+    'Olvida la red y vuelve a conectarte escribiendo la contraseña.',
+    'Si la red de la universidad pide iniciar sesión en una página, ábrela en el navegador del visor.',
+    'Prueba compartiendo internet desde un celular (punto de acceso).',
+    'Abre el navegador del visor e ingresa a xrayvr.up.railway.app para confirmar que hay conexión.']},
+  {id:'guardar', icon:'💾', titulo:'No se guardan los resultados de los estudiantes', pasos:[
+    'Confirma que el visor tiene internet (ver el problema anterior).',
+    'El estudiante debe terminar el cuestionario hasta ver la pantalla “Resultado” antes de quitarse el visor.',
+    'Pulsa “↻ Actualizar” en este dashboard y busca al estudiante en la pestaña Estudiantes.',
+    'Si al ingresar aparece “Ya existe un registro con ese nombre”, el estudiante ya estaba registrado: elige reiniciar solo si quieres borrar su intento anterior.']},
+  {id:'abre', icon:'🚫', titulo:'La aplicación no abre o se cierra sola', pasos:[
+    'Verifica que la batería del visor esté por encima del 20 %.',
+    'Reinicia el visor: mantén presionado el botón de encendido → Reiniciar.',
+    'Abre la app desde Biblioteca → Fuentes desconocidas → “Proyecto de Grado”.',
+    'Revisa que el visor tenga espacio libre (Configuración → Almacenamiento).']},
+  {id:'lenta', icon:'🐢', titulo:'La aplicación va lenta o se traba', pasos:[
+    'Cierra las demás aplicaciones abiertas en el visor.',
+    'Conecta el visor al cargador o verifica que tenga batería suficiente.',
+    'Si el visor está caliente, déjalo descansar unos minutos en un lugar ventilado.',
+    'Reinicia el visor y vuelve a abrir la aplicación.']},
+  {id:'imagen', icon:'👓', titulo:'Imagen borrosa o sala desalineada', pasos:[
+    'Ajusta la distancia entre lentes (rueda inferior del visor) hasta ver nítido.',
+    'Limpia los lentes con un paño de microfibra seco.',
+    'Mantén presionado el botón Meta del mando derecho para recentrar la vista.',
+    'Si la sala aparece desplazada, vuelve a definir el límite (Guardian) en Configuración → Límite.']},
+  {id:'otro', icon:'✍️', titulo:'Otro problema', pasos:[]}
+];
+const ESTADO_TXT = {pendiente:'Pendiente', en_revision:'En revisión', resuelto:'Resuelto'};
 let _allData = [];
 let _qStats  = [];
 let _pendingDeleteId = null;
@@ -514,10 +700,27 @@ let _chartOv = null, _chartQ = null, _chartQPdi = null;
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 function switchTab(tab) {
-  document.querySelectorAll('.tab-pill').forEach((t,i) =>
-    t.classList.toggle('active', (i===0) === (tab==='login')));
-  document.getElementById('tab-login').style.display    = tab==='login'    ? '' : 'none';
-  document.getElementById('tab-register').style.display = tab==='register' ? '' : 'none';
+  document.querySelectorAll('.tab-pill').forEach(t => t.classList.toggle('active', t.dataset.tab===tab));
+  ['login','register','tecnico'].forEach(n =>
+    document.getElementById('tab-'+n).style.display = n===tab ? '' : 'none');
+}
+
+async function doLoginTecnico() {
+  const correo = document.getElementById('tec-correo').value.trim();
+  const pass   = document.getElementById('tec-password').value;
+  const msg    = document.getElementById('tec-msg');
+  msg.className='auth-msg'; msg.textContent='Verificando...';
+  try {
+    const r = await fetch('/api/tecnico/login',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({correo,password:pass})});
+    const d = await r.json();
+    if (!r.ok){msg.className='auth-msg error';msg.textContent=d.error;return;}
+    _token=d.token; _nombre=d.nombre; _rol='tecnico';
+    localStorage.setItem('token',_token);
+    localStorage.setItem('docente_nombre',_nombre);
+    localStorage.setItem('rol',_rol);
+    showDashboard();
+  } catch { msg.className='auth-msg error'; msg.textContent='Error de conexión'; }
 }
 
 async function doLogin() {
@@ -530,9 +733,10 @@ async function doLogin() {
       headers:{'Content-Type':'application/json'},body:JSON.stringify({correo,password:pass})});
     const d = await r.json();
     if (!r.ok){msg.className='auth-msg error';msg.textContent=d.error;return;}
-    _token=d.token; _nombre=d.nombre;
+    _token=d.token; _nombre=d.nombre; _rol='docente';
     localStorage.setItem('token',_token);
     localStorage.setItem('docente_nombre',_nombre);
+    localStorage.setItem('rol',_rol);
     showDashboard();
   } catch { msg.className='auth-msg error'; msg.textContent='Error de conexión'; }
 }
@@ -554,18 +758,27 @@ async function doRegister() {
 }
 
 function logout() {
-  localStorage.removeItem('token'); localStorage.removeItem('docente_nombre');
-  _token=null; _nombre=null; _allData=[]; _qStats=[];
+  localStorage.removeItem('token'); localStorage.removeItem('docente_nombre'); localStorage.removeItem('rol');
+  _token=null; _nombre=null; _rol='docente'; _allData=[]; _qStats=[]; _reportes=[];
+  if (_poll){clearInterval(_poll);_poll=null;}
   document.getElementById('auth-overlay').style.display='flex';
   document.getElementById('dashboard').style.display='none';
 }
 
 function showDashboard() {
+  const tec = _rol==='tecnico';
   document.getElementById('auth-overlay').style.display='none';
   document.getElementById('dashboard').style.display='block';
-  document.getElementById('sb-avatar').textContent = _nombre?.[0]?.toUpperCase()||'D';
-  document.getElementById('sb-uname').textContent  = _nombre||'Docente';
+  document.getElementById('sb-avatar').textContent = _nombre?.[0]?.toUpperCase()||(tec?'T':'D');
+  document.getElementById('sb-uname').textContent  = _nombre||(tec?'Servicio técnico':'Docente');
+  document.getElementById('sb-role').textContent   = tec ? 'Servicio técnico' : 'Docente';
+  document.querySelector('.solo-docente').style.display = tec ? 'none' : '';
+  document.querySelector('.solo-tecnico').style.display = tec ? '' : 'none';
+  if (!tec) renderFaq();
+  showSection(tec ? 'reportes' : 'resumen');
   loadAll();
+  if (_poll) clearInterval(_poll);
+  _poll = setInterval(loadReportes, 30000);   // revisa respuestas o reportes nuevos cada 30 s
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -573,7 +786,9 @@ function showDashboard() {
 const SECTIONS = {
   resumen:     {title:'Resumen general',       sub:'Vista general del desempeño estudiantil'},
   estudiantes: {title:'Estudiantes',            sub:'Listado completo con resultados individuales'},
-  preguntas:   {title:'Análisis por pregunta',  sub:'Porcentaje de aciertos en cada ítem — pre vs post'}
+  preguntas:   {title:'Análisis por pregunta',  sub:'Porcentaje de aciertos en cada ítem — pre vs post'},
+  soporte:     {title:'Soporte técnico',        sub:'Reporta una falla del entorno VR o del sistema'},
+  reportes:    {title:'Reportes recibidos',     sub:'Fallas reportadas por los docentes'}
 };
 
 function showSection(name) {
@@ -589,6 +804,9 @@ function showSection(name) {
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 async function loadAll() {
+  loadReportes();
+  if (_rol==='tecnico') return;
+  loadContacto();
   try {
     const h = {Authorization:'Bearer '+_token};
     const [r1,r2] = await Promise.all([
@@ -823,6 +1041,183 @@ function questionCards(preguntas, offset, prefix) {
       </div>
     </div>`;
   }).join('');
+}
+
+// ── Soporte técnico ───────────────────────────────────────────────────────────
+
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fecha = s => { const d=new Date(s); return isNaN(d) ? '' :
+  d.toLocaleString('es-BO',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); };
+const apiH = () => ({Authorization:'Bearer '+_token,'Content-Type':'application/json'});
+
+async function loadContacto() {
+  if (_contacto) return;
+  try {
+    const r = await fetch('/api/soporte/contacto',{headers:apiH()});
+    if (!r.ok) return;
+    _contacto = await r.json();
+    const num = _contacto.telefono.replace(/\D/g,'');
+    const tel = document.getElementById('ct-tel');
+    tel.textContent = _contacto.telefono; tel.href = 'https://wa.me/'+num;
+    const mail = document.getElementById('ct-mail');
+    mail.textContent = _contacto.correo; mail.href = 'mailto:'+_contacto.correo;
+    document.getElementById('ct-wa').href = 'https://wa.me/'+num;
+  } catch(e){console.error(e);}
+}
+
+function waLink(texto) {
+  const num = (_contacto?.telefono || '+59165723672').replace(/\D/g,'');
+  return 'https://wa.me/'+num+'?text='+encodeURIComponent(texto);
+}
+
+// Docente: problemas frecuentes
+function renderFaq() {
+  document.getElementById('faq-grid').innerHTML = FAQ.map(f =>
+    `<div class="faq-opt${_faqSel===f.id?' sel':''}" onclick="selFaq('${f.id}')"><span class="fi">${f.icon}</span>${f.titulo}</div>`
+  ).join('');
+}
+
+function selFaq(id) {
+  _faqSel = id;
+  const f = FAQ.find(x=>x.id===id);
+  renderFaq();
+  document.getElementById('faq-help').classList.add('show');
+  document.getElementById('faq-steps').innerHTML = f.pasos.length
+    ? `<div class="steps"><div class="steps-title">Prueba esto primero</div><ol>${f.pasos.map(p=>`<li>${esc(p)}</li>`).join('')}</ol></div>`
+    : '';
+  document.getElementById('faq-desc-label').textContent = id==='otro' ? 'Describe el problema' : 'Detalle (opcional)';
+  document.getElementById('btn-solucionado').style.display = f.pasos.length ? '' : 'none';
+  setSupMsg('', '');
+}
+
+function faqSolucionado() {
+  _faqSel = null;
+  document.getElementById('faq-help').classList.remove('show');
+  document.getElementById('faq-desc').value = '';
+  renderFaq();
+  setSupMsg('', '');
+}
+
+function setSupMsg(cls, html) {
+  const m = document.getElementById('sup-msg');
+  m.className = 'sup-msg '+cls; m.innerHTML = html;
+}
+
+async function enviarReporte() {
+  const f = FAQ.find(x=>x.id===_faqSel);
+  if (!f) return;
+  const descripcion = document.getElementById('faq-desc').value.trim();
+  if (f.id==='otro' && !descripcion){ setSupMsg('error','Describe el problema antes de enviarlo.'); return; }
+  const btn = document.getElementById('btn-enviar-reporte');
+  btn.disabled = true; setSupMsg('','Enviando...');
+  try {
+    const r = await fetch('/api/reportes',{method:'POST',headers:apiH(),
+      body:JSON.stringify({categoria:f.titulo, descripcion})});
+    const d = await r.json();
+    if (r.status===401){logout();return;}
+    if (!r.ok){ setSupMsg('error', esc(d.error)); return; }
+    document.getElementById('faq-desc').value = '';
+    _abiertos.add(d.id);
+    setSupMsg('ok', d.whatsapp==='enviado'
+      ? `✓ Reporte #${d.id} enviado. El servicio técnico fue notificado por WhatsApp.`
+      : `✓ Reporte #${d.id} registrado. <a class="btn-wa" style="padding:5px 10px;margin-left:6px" target="_blank" href="${waLink(d.aviso)}">💬 Avisar por WhatsApp</a>`);
+    loadReportes();
+  } catch { setSupMsg('error','Error de conexión'); }
+  finally { btn.disabled = false; }
+}
+
+// Ambos roles: lista de reportes con su conversación
+async function loadReportes() {
+  if (!_token) return;
+  try {
+    const r = await fetch('/api/reportes',{headers:apiH()});
+    if (r.status===401){logout();return;}
+    if (!r.ok) return;
+    _reportes = await r.json();
+    renderReportes();
+  } catch(e){console.error(e);}
+}
+
+function renderReportes() {
+  const tec = _rol==='tecnico';
+  const cont = document.getElementById(tec ? 'reportes-tecnico' : 'mis-reportes');
+  // no repintar mientras el usuario escribe una respuesta
+  if (cont.contains(document.activeElement) && document.activeElement.tagName==='TEXTAREA') return;
+
+  const cuenta = e => _reportes.filter(x=>x.estado===e).length;
+  if (tec) {
+    document.getElementById('t-pend').textContent = cuenta('pendiente');
+    document.getElementById('t-rev').textContent  = cuenta('en_revision');
+    document.getElementById('t-res').textContent  = cuenta('resuelto');
+  }
+  const pend = tec ? cuenta('pendiente') : _reportes.filter(x=>x.estado!=='resuelto' && ultimoEsTecnico(x)).length;
+  const badge = document.getElementById(tec ? 'nav-reportes-count' : 'nav-soporte-count');
+  badge.textContent = pend; badge.style.display = pend ? '' : 'none';
+
+  if (!_reportes.length) {
+    cont.innerHTML = `<div class="empty-state" style="padding:36px"><div class="ei">${tec?'📭':'✅'}</div><p>${tec?'No hay reportes por ahora':'No has enviado reportes'}</p></div>`;
+    return;
+  }
+  cont.innerHTML = _reportes.map(rep => {
+    const abierto = _abiertos.has(rep.id);
+    const msgs = (rep.descripcion ? `<div class="msg desc"><small>Descripción del docente · ${fecha(rep.creado_en)}</small>${esc(rep.descripcion)}</div>` : '')
+      + rep.mensajes.map(m => `<div class="msg ${m.autor}"><small>${esc(m.autor_nombre)} · ${fecha(m.creado_en)}</small>${esc(m.texto)}</div>`).join('')
+      + (!rep.descripcion && !rep.mensajes.length ? '<div class="rep-meta" style="margin:10px 0">Sin mensajes todavía.</div>' : '');
+    const acciones = tec
+      ? `<select class="est-select" onchange="cambiarEstado(${rep.id},this.value)">
+           ${Object.entries(ESTADO_TXT).map(([k,v])=>`<option value="${k}"${k===rep.estado?' selected':''}>${v}</option>`).join('')}
+         </select>`
+      : (rep.estado!=='resuelto' ? `<button class="btn-ok" style="padding:7px 12px" onclick="marcarResuelto(${rep.id})">✓ Ya se solucionó</button>` : '');
+    return `<div class="rep${abierto?' open':''}" id="rep-${rep.id}">
+      <div class="rep-head" onclick="toggleRep(${rep.id})">
+        <span class="rep-id">#${rep.id}</span>
+        <span class="rep-cat">${esc(rep.categoria)}</span>
+        ${tec ? `<span class="rep-meta">👤 ${esc(rep.docente_nombre)}</span>` : ''}
+        <span class="rep-meta">${fecha(rep.actualizado_en)}</span>
+        <span class="est ${rep.estado}">${ESTADO_TXT[rep.estado]||rep.estado}</span>
+      </div>
+      <div class="rep-body">
+        ${msgs}
+        <div class="reply-row">
+          <textarea class="inp" id="reply-${rep.id}" maxlength="4000"
+            placeholder="${tec?'Responder al docente…':'Escribir al servicio técnico…'}"></textarea>
+          <button class="btn-pri" onclick="responder(${rep.id})">Enviar</button>
+        </div>
+        <div class="row-btns" style="align-items:center">${acciones}<span class="sup-msg" id="rmsg-${rep.id}"></span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+const ultimoEsTecnico = rep => rep.mensajes.length && rep.mensajes[rep.mensajes.length-1].autor==='tecnico';
+
+function toggleRep(id) {
+  _abiertos.has(id) ? _abiertos.delete(id) : _abiertos.add(id);
+  document.getElementById('rep-'+id)?.classList.toggle('open');
+}
+
+async function responder(id) {
+  const ta = document.getElementById('reply-'+id);
+  const texto = ta.value.trim();
+  const msg = document.getElementById('rmsg-'+id);
+  if (!texto){ msg.className='sup-msg error'; msg.textContent='Escribe un mensaje.'; return; }
+  try {
+    const r = await fetch(`/api/reportes/${id}/mensajes`,{method:'POST',headers:apiH(),body:JSON.stringify({texto})});
+    const d = await r.json();
+    if (!r.ok){ msg.className='sup-msg error'; msg.textContent=d.error; return; }
+    ta.value=''; ta.blur();
+    await loadReportes();
+  } catch { msg.className='sup-msg error'; msg.textContent='Error de conexión'; }
+}
+
+async function cambiarEstado(id, estado) {
+  await fetch(`/api/reportes/${id}/estado`,{method:'PATCH',headers:apiH(),body:JSON.stringify({estado})});
+  loadReportes();
+}
+
+async function marcarResuelto(id) {
+  await fetch(`/api/reportes/${id}/resuelto`,{method:'POST',headers:apiH()});
+  loadReportes();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
