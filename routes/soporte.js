@@ -1,7 +1,5 @@
 // Soporte técnico: el docente reporta fallas, el servicio técnico las atiende desde su panel.
-// Cada reporte nuevo (y cada mensaje del docente) avisa por WhatsApp al número de soporte.
 const express = require('express');
-const https   = require('https');
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const db      = require('../db');
@@ -23,7 +21,6 @@ const TECNICO_INICIAL = {
     password: process.env.TECNICO_PASSWORD,
 };
 const ESTADOS = ['pendiente', 'en_revision', 'resuelto'];
-const PANEL_URL = process.env.PANEL_URL || 'https://xrayvr.up.railway.app';
 
 // ── Tablas ────────────────────────────────────────────────────────────────────
 
@@ -63,27 +60,6 @@ async function init() {
             [TECNICO_INICIAL.nombre, TECNICO_INICIAL.correo, hash]);
         console.log('[soporte] Cuenta de servicio técnico creada:', TECNICO_INICIAL.correo);
     }
-}
-
-// ── WhatsApp (CallMeBot) ──────────────────────────────────────────────────────
-// Requiere la variable CALLMEBOT_APIKEY (se obtiene una vez desde el celular de soporte).
-// Sin ella, el reporte se guarda igual y el panel ofrece avisar con un enlace de WhatsApp.
-
-function avisarWhatsApp(texto) {
-    const apikey = process.env.CALLMEBOT_APIKEY;
-    if (!apikey) return Promise.resolve('no_configurado');
-    const url = 'https://api.callmebot.com/whatsapp.php'
-        + '?phone=' + encodeURIComponent(SOPORTE.telefono)
-        + '&text='  + encodeURIComponent(texto)
-        + '&apikey=' + encodeURIComponent(apikey);
-    return new Promise(resolve => {
-        const req = https.get(url, res => {
-            res.resume();
-            resolve(res.statusCode >= 200 && res.statusCode < 300 ? 'enviado' : 'error');
-        });
-        req.on('error', e => { console.error('[whatsapp]', e.message); resolve('error'); });
-        req.setTimeout(10000, () => { req.destroy(); resolve('error'); });
-    });
 }
 
 // ── Login del servicio técnico ────────────────────────────────────────────────
@@ -138,12 +114,7 @@ router.post('/reportes', docenteRequired, async (req, res) => {
         const [r] = await db.execute(
             'INSERT INTO reportes (docente_id, docente_nombre, categoria, descripcion) VALUES (?, ?, ?, ?)',
             [req.usuario.id, nombre, categoria, descripcion || null]);
-        const id = r.insertId;
-        const aviso = `🔧 Reporte #${id} — ${categoria}\nDocente: ${nombre}`
-            + (descripcion ? `\n"${descripcion.slice(0, 300)}"` : '')
-            + `\nResponder en: ${PANEL_URL}`;
-        const whatsapp = await avisarWhatsApp(aviso);
-        res.json({ ok: true, id, whatsapp, aviso });
+        res.json({ ok: true, id: r.insertId });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
@@ -183,7 +154,6 @@ router.post('/reportes/:id/mensajes', usuarioRequired, async (req, res) => {
             'INSERT INTO reporte_mensajes (reporte_id, autor, autor_nombre, texto) VALUES (?, ?, ?, ?)',
             [id, req.rol, nombre, texto]);
 
-        let whatsapp = null;
         if (req.rol === 'tecnico') {
             if (rep.estado === 'pendiente')
                 await db.execute("UPDATE reportes SET estado = 'en_revision' WHERE id = ?", [id]);
@@ -192,9 +162,8 @@ router.post('/reportes/:id/mensajes', usuarioRequired, async (req, res) => {
         } else {
             // El docente vuelve a escribir: si estaba resuelto, se reabre
             await db.execute("UPDATE reportes SET estado = IF(estado = 'resuelto', 'pendiente', estado), actualizado_en = CURRENT_TIMESTAMP WHERE id = ?", [id]);
-            whatsapp = await avisarWhatsApp(`💬 Reporte #${id} — ${rep.categoria}\n${nombre}: "${texto.slice(0, 300)}"\nResponder en: ${PANEL_URL}`);
         }
-        res.json({ ok: true, whatsapp });
+        res.json({ ok: true });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

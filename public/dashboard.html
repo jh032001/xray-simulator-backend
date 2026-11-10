@@ -315,17 +315,13 @@ textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);
 }
 .btn-pri:disabled{opacity:.5;cursor:default;}
 .btn-ok{padding:10px 16px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.4);border-radius:8px;color:#34d399;font-size:.86rem;font-weight:600;cursor:pointer;}
-.btn-wa{
-  display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border-radius:8px;
-  background:#16a34a;color:#fff;font-size:.84rem;font-weight:700;text-decoration:none;
-}
 .sup-msg{font-size:.82rem;margin-top:10px;min-height:16px;}
 .sup-msg.ok{color:#6ee7b7;}.sup-msg.error{color:#fca5a5;}
 .contact-line{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:.86rem;}
 .contact-line:last-of-type{border-bottom:none;}
 .contact-line .ci2{width:32px;height:32px;border-radius:8px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
 .contact-line small{display:block;color:var(--muted);font-size:.7rem;}
-.contact-line a{color:var(--text);text-decoration:none;font-weight:600;}
+.contact-line .ct-val{color:var(--text);font-weight:600;}
 
 .rep{background:var(--surf);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
 .rep-head{padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;flex-wrap:wrap;}
@@ -600,12 +596,11 @@ textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);
 
           <div class="card">
             <h3>Contacto de servicio técnico</h3>
-            <div class="hint">Para casos urgentes también puedes escribir directamente.</div>
+            <div class="hint">Datos de contacto para casos urgentes.</div>
             <div class="contact-line"><div class="ci2">📱</div>
-              <div><small>WhatsApp / teléfono</small><a id="ct-tel" href="#" target="_blank">—</a></div></div>
+              <div><small>Teléfono</small><span class="ct-val" id="ct-tel">—</span></div></div>
             <div class="contact-line"><div class="ci2">✉️</div>
-              <div><small>Correo</small><a id="ct-mail" href="#">—</a></div></div>
-            <div class="row-btns"><a class="btn-wa" id="ct-wa" href="#" target="_blank">💬 Escribir por WhatsApp</a></div>
+              <div><small>Correo</small><span class="ct-val" id="ct-mail">—</span></div></div>
           </div>
         </div>
       </div>
@@ -1068,19 +1063,11 @@ async function loadContacto() {
     const r = await fetch('/api/soporte/contacto',{headers:apiH()});
     if (!r.ok) return;
     _contacto = await r.json();
-    const num = _contacto.telefono.replace(/\D/g,'');
-    const tel = document.getElementById('ct-tel');
-    tel.textContent = _contacto.telefono; tel.href = 'https://wa.me/'+num;
-    const mail = document.getElementById('ct-mail');
-    mail.textContent = _contacto.correo; mail.href = 'mailto:'+_contacto.correo;
-    document.getElementById('ct-wa').href = 'https://wa.me/'+num;
+    document.getElementById('ct-tel').textContent  = _contacto.telefono;
+    document.getElementById('ct-mail').textContent = _contacto.correo;
   } catch(e){console.error(e);}
 }
 
-function waLink(texto) {
-  const num = (_contacto?.telefono || '+59165723672').replace(/\D/g,'');
-  return 'https://wa.me/'+num+'?text='+encodeURIComponent(texto);
-}
 
 // Docente: problemas frecuentes
 function renderFaq() {
@@ -1130,9 +1117,7 @@ async function enviarReporte() {
     if (!r.ok){ setSupMsg('error', esc(d.error)); return; }
     document.getElementById('faq-desc').value = '';
     _abiertos.add(d.id);
-    setSupMsg('ok', d.whatsapp==='enviado'
-      ? `✓ Reporte #${d.id} enviado. El servicio técnico fue notificado por WhatsApp.`
-      : `✓ Reporte #${d.id} registrado. <a class="btn-wa" style="padding:5px 10px;margin-left:6px" target="_blank" href="${waLink(d.aviso)}">💬 Avisar por WhatsApp</a>`);
+    setSupMsg('ok', `✓ Reporte #${d.id} enviado al servicio técnico. Verás su respuesta en “Mis reportes”.`);
     loadReportes();
   } catch { setSupMsg('error','Error de conexión'); }
   finally { btn.disabled = false; }
