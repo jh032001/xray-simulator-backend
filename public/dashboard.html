@@ -126,7 +126,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .logout-btn:hover{border-color:var(--red);color:var(--red);}
 
 /* Main */
-.main{overflow-y:auto;min-height:100vh;}
+.main{overflow-y:auto;min-height:100vh;min-width:0;}
 .topbar{
   padding:18px 28px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
@@ -346,6 +346,127 @@ textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);
 .reply-row textarea{min-height:46px;}
 .est-select{padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:.8rem;}
 .badge-count{margin-left:auto;background:var(--amber);color:#111;font-size:.66rem;font-weight:800;padding:1px 7px;border-radius:10px;}
+.only-m{display:none;}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .section{padding:20px 18px;}
+  .topbar{padding:14px 18px;}
+}
+@media(max-width:760px){
+  /* Login */
+  #auth-overlay{padding:16px;overflow-y:auto;}
+  .auth-card{width:100%;max-width:430px;margin:auto;border-radius:16px;}
+  .auth-top{padding:24px 20px 18px;}
+  .auth-logo{margin-bottom:16px;}
+  .auth-title{font-size:1.3rem;}
+  .auth-body{padding:20px 20px 24px;}
+  .tab-row{margin-bottom:18px;}
+  .tab-pill{padding:9px 4px;font-size:.76rem;line-height:1.25;display:flex;align-items:center;justify-content:center;}
+  .field input,textarea.inp{font-size:16px;}   /* evita el zoom automático del navegador móvil */
+
+  /* La barra lateral pasa a ser una barra inferior tipo app */
+  .hide-m{display:none;}
+  .only-m{display:inline;}
+  .layout{display:block;}
+  .main{min-height:auto;padding-bottom:calc(66px + env(safe-area-inset-bottom));}
+  .sidebar{
+    position:fixed;left:0;right:0;bottom:0;top:auto;height:auto;z-index:60;
+    flex-direction:row;align-items:stretch;
+    border-right:none;border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom);
+    box-shadow:0 -8px 24px rgba(0,0,0,.35);
+  }
+  .sb-logo,.nav-section,.sb-user{display:none;}
+  .sb-nav{flex:1;padding:0;display:flex;}
+  .sb-nav>div{flex:1;display:flex;}
+  .nav-item,.logout-btn{
+    flex:1;min-width:0;flex-direction:column;justify-content:center;gap:3px;
+    padding:8px 2px 7px;margin:0;border-radius:0;position:relative;
+    font-size:.66rem;text-align:center;line-height:1.1;
+  }
+  .nav-item .ni,.logout-btn .ni{font-size:19px;width:auto;}
+  .nav-item .nl,.logout-btn .nl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .nav-item.active{background:transparent;box-shadow:inset 0 2px 0 var(--pri);}
+  .nav-item .badge-count{position:absolute;top:4px;left:calc(50% + 6px);margin:0;}
+  .sb-footer{padding:0;border-top:none;display:flex;flex:0 0 18%;}
+  .logout-btn{display:flex;align-items:center;border:none;border-left:1px solid var(--border);}
+  .logout-btn .nl{display:block;}
+  .logout-btn:hover{color:var(--red);}
+
+  /* Barra superior */
+  .topbar{padding:12px 16px;gap:10px;}
+  .topbar-title{font-size:.98rem;}
+  .topbar-sub{font-size:.72rem;}
+  .btn-outline{padding:8px 12px;font-size:.95rem;flex-shrink:0;}
+  .section{padding:16px 14px;}
+
+  /* Tarjetas de cifras */
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px;}
+  #sec-reportes .stats-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .stat{padding:14px 12px;}
+  .stat-icon{font-size:17px;margin-bottom:8px;}
+  .stat-val{font-size:1.45rem;}
+  .stat-label{font-size:.7rem;}
+  .stat:hover{transform:none;}
+
+  /* Gráficos */
+  .chart-card{padding:16px 12px;margin-bottom:16px;}
+  .chart-card h3,.chart-card p{padding:0 4px;}
+  .chart-box{height:240px;}
+  .q-cards{grid-template-columns:1fr;}
+
+  /* Tabla de estudiantes → tarjetas */
+  .table-header{padding:14px;}
+  .table-header>div{width:100%;}
+  .search-box{flex:1 1 100%;}
+  .search-box input{width:100%;font-size:16px;}
+  .sem-filter{flex:1 1 100%;font-size:.9rem;padding:9px 10px;}
+  #sec-estudiantes table,#sec-estudiantes tbody{display:block;}
+  #sec-estudiantes thead{display:none;}
+  #sec-estudiantes tr{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;
+    padding:14px;border-bottom:1px solid var(--border);position:relative;
+  }
+  #sec-estudiantes tr:last-child{border-bottom:none;}
+  #sec-estudiantes td{display:block;padding:0;border:none;background:none!important;}
+  #sec-estudiantes td[colspan]{grid-column:1/-1;}
+  #sec-estudiantes td[data-label]::before{
+    content:attr(data-label);display:block;margin-bottom:4px;
+    font-size:.64rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+  }
+  #sec-estudiantes .c-num{display:none;}
+  #sec-estudiantes .c-name{grid-column:1/-1;padding-right:44px;font-size:.95rem;}
+  #sec-estudiantes .c-sem,#sec-estudiantes .c-est{display:flex;align-items:center;}
+  #sec-estudiantes .c-del{position:absolute;top:10px;right:12px;}
+
+  /* Soporte y reportes */
+  .sup-grid{gap:0;}
+  .card{padding:16px 14px;margin-bottom:16px;}
+  .faq-grid{grid-template-columns:1fr;gap:8px;}
+  .faq-opt{padding:12px;}
+  .steps{padding:12px 12px 12px 28px;}
+  .rep-head{padding:12px 14px;gap:6px 10px;}
+  .rep-cat{flex:1 1 calc(100% - 50px);min-width:0;order:0;}
+  .rep-head .est{margin-left:auto;}
+  .rep-body{padding:4px 14px 14px;}
+  .msg{max-width:92%;}
+  .reply-row{flex-direction:column;align-items:stretch;}
+  .reply-row .btn-pri{width:100%;padding:12px;}
+  .row-btns>*{flex:1 1 auto;}
+  .row-btns .sup-msg{flex-basis:100%;margin-top:0;}
+  .est-select{padding:10px;font-size:.9rem;}
+  .row-btns .btn-pri,.row-btns .btn-ok{padding:12px 16px;}
+
+  /* Diálogo de confirmación */
+  .overlay-confirm{padding:16px;}
+  .confirm-box{width:100%;max-width:350px;padding:26px 20px;}
+}
+@media(max-width:380px){
+  .stat-val{font-size:1.25rem;}
+  #sec-reportes .stat{padding:12px 8px;}
+  .nav-item,.logout-btn{font-size:.6rem;}
+}
 </style>
 </head>
 <body>
@@ -440,23 +561,23 @@ textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);
         <div class="solo-docente">
           <div class="nav-section">Vistas</div>
           <div class="nav-item active" onclick="showSection('resumen')"    id="nav-resumen">
-            <span class="ni">📊</span> Resumen
+            <span class="ni">📊</span> <span class="nl">Resumen</span>
           </div>
           <div class="nav-item" onclick="showSection('estudiantes')" id="nav-estudiantes">
-            <span class="ni">👥</span> Estudiantes
+            <span class="ni">👥</span> <span class="nl">Estudiantes</span>
           </div>
           <div class="nav-item" onclick="showSection('preguntas')"   id="nav-preguntas">
-            <span class="ni">📋</span> Por pregunta
+            <span class="ni">📋</span> <span class="nl">Por pregunta</span>
           </div>
           <div class="nav-section">Ayuda</div>
           <div class="nav-item" onclick="showSection('soporte')" id="nav-soporte">
-            <span class="ni">🛠️</span> Soporte técnico <span class="badge-count" id="nav-soporte-count" style="display:none"></span>
+            <span class="ni">🛠️</span> <span class="nl">Soporte<span class="hide-m"> técnico</span></span> <span class="badge-count" id="nav-soporte-count" style="display:none"></span>
           </div>
         </div>
         <div class="solo-tecnico" style="display:none">
           <div class="nav-section">Servicio técnico</div>
           <div class="nav-item" onclick="showSection('reportes')" id="nav-reportes">
-            <span class="ni">📨</span> Reportes recibidos <span class="badge-count" id="nav-reportes-count" style="display:none"></span>
+            <span class="ni">📨</span> <span class="nl">Reportes<span class="hide-m"> recibidos</span></span> <span class="badge-count" id="nav-reportes-count" style="display:none"></span>
           </div>
         </div>
       </nav>
@@ -468,7 +589,7 @@ textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);
             <div class="sb-role" id="sb-role">Docente</div>
           </div>
         </div>
-        <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+        <button class="logout-btn" onclick="logout()"><span class="ni only-m">🚪</span><span class="nl">Cerrar sesión</span></button>
       </div>
     </aside>
 
@@ -478,7 +599,7 @@ textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);
           <div class="topbar-title" id="topbar-title">Resumen general</div>
           <div class="topbar-sub"  id="topbar-sub">Vista general del desempeño estudiantil</div>
         </div>
-        <button class="btn-outline" onclick="loadAll()">↻ Actualizar</button>
+        <button class="btn-outline" onclick="loadAll()" title="Actualizar">↻<span class="hide-m"> Actualizar</span></button>
       </div>
 
       <!-- Resumen -->
@@ -978,15 +1099,15 @@ function renderTable(data) {
       : '<span class="delta neu">= 0</span>';
 
     return `<tr data-name="${d.nombre} ${d.apellido}" data-sem="${d.semestre}">
-      <td style="color:var(--muted)">${i+1}</td>
-      <td><strong>${d.nombre} ${d.apellido}</strong></td>
-      <td><span class="badge sem">${SEMESTRES[d.semestre]||d.semestre}</span></td>
-      <td>${estado}</td>
-      <td>${barPre}</td>
-      <td>${barPost}</td>
-      <td>${dHtml}</td>
-      <td>${pdiCell(d)}</td>
-      <td><button class="del-btn" onclick="askDelete(${d.id},'${d.nombre} ${d.apellido}')">🗑</button></td>
+      <td class="c-num" style="color:var(--muted)">${i+1}</td>
+      <td class="c-name"><strong>${d.nombre} ${d.apellido}</strong></td>
+      <td class="c-sem"><span class="badge sem">${SEMESTRES[d.semestre]||d.semestre}</span></td>
+      <td class="c-est">${estado}</td>
+      <td class="c-pre" data-label="Pre-test">${barPre}</td>
+      <td class="c-post" data-label="Post-test">${barPost}</td>
+      <td class="c-delta" data-label="Mejora">${dHtml}</td>
+      <td class="c-pdi" data-label="PDI /5">${pdiCell(d)}</td>
+      <td class="c-del"><button class="del-btn" onclick="askDelete(${d.id},'${d.nombre} ${d.apellido}')">🗑</button></td>
     </tr>`;
   }).join('');
 }
