@@ -393,6 +393,14 @@ textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);
       </div>
 
       <div id="tab-register" style="display:none">
+        <div class="field"><label>Tipo de cuenta</label>
+          <div class="tab-row" style="margin-bottom:0">
+            <div class="tab-pill active" data-tipo="docente" onclick="setTipoCuenta('docente')">👩‍🏫 Docente</div>
+            <div class="tab-pill"        data-tipo="tecnico" onclick="setTipoCuenta('tecnico')">🛠️ Servicio técnico</div>
+          </div>
+          <div style="font-size:.74rem;color:var(--muted);margin-top:7px" id="reg-tipo-hint">
+            Ve los resultados de los estudiantes y reporta fallas.</div>
+        </div>
         <div class="field"><label>Nombre completo</label>
           <input type="text" id="reg-nombre" placeholder="Dr. Nombre Apellido"></div>
         <div class="field"><label>Correo institucional</label>
@@ -701,7 +709,7 @@ let _chartOv = null, _chartQ = null, _chartQPdi = null;
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 function switchTab(tab) {
-  document.querySelectorAll('.tab-pill').forEach(t => t.classList.toggle('active', t.dataset.tab===tab));
+  document.querySelectorAll('.tab-pill[data-tab]').forEach(t => t.classList.toggle('active', t.dataset.tab===tab));
   ['login','register','tecnico'].forEach(n =>
     document.getElementById('tab-'+n).style.display = n===tab ? '' : 'none');
 }
@@ -742,19 +750,36 @@ async function doLogin() {
   } catch { msg.className='auth-msg error'; msg.textContent='Error de conexión'; }
 }
 
+let _tipoCuenta = 'docente';
+function setTipoCuenta(tipo) {
+  _tipoCuenta = tipo;
+  document.querySelectorAll('#tab-register .tab-pill').forEach(p => p.classList.toggle('active', p.dataset.tipo===tipo));
+  document.getElementById('reg-tipo-hint').textContent = tipo==='tecnico'
+    ? 'Recibe y responde los reportes de fallas. No ve datos de estudiantes.'
+    : 'Ve los resultados de los estudiantes y reporta fallas.';
+  document.getElementById('reg-nombre').placeholder = tipo==='tecnico' ? 'Ing. Nombre Apellido' : 'Dr. Nombre Apellido';
+  document.getElementById('reg-correo').placeholder = tipo==='tecnico' ? 'soporte@…' : 'docente@univalle.edu';
+}
+
 async function doRegister() {
   const nombre = document.getElementById('reg-nombre').value.trim();
   const correo = document.getElementById('reg-correo').value.trim();
   const pass   = document.getElementById('reg-password').value;
   const msg    = document.getElementById('reg-msg');
+  const tec    = _tipoCuenta==='tecnico';
   msg.className='auth-msg'; msg.textContent='Creando cuenta...';
   try {
-    const r = await fetch('/api/docente/register',{method:'POST',
+    const r = await fetch(tec ? '/api/tecnico/register' : '/api/docente/register',{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre,correo,password:pass})});
     const d = await r.json();
     if (!r.ok){msg.className='auth-msg error';msg.textContent=d.error;return;}
-    msg.className='auth-msg ok'; msg.textContent='¡Cuenta creada! Ahora inicia sesión.';
-    setTimeout(()=>switchTab('login'),1600);
+    msg.className='auth-msg ok';
+    msg.textContent = tec ? '¡Cuenta de servicio técnico creada! Inicia sesión en la pestaña "Servicio técnico".'
+                          : '¡Cuenta de docente creada! Ahora inicia sesión.';
+    setTimeout(()=>{
+      switchTab(tec ? 'tecnico' : 'login');
+      document.getElementById(tec ? 'tec-correo' : 'login-correo').value = correo;
+    },1800);
   } catch { msg.className='auth-msg error'; msg.textContent='Error de conexión'; }
 }
 

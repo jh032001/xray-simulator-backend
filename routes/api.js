@@ -28,6 +28,11 @@ router.post('/docente/register', async (req, res) => {
         return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
 
     try {
+        // Un mismo correo no puede ser docente y servicio técnico a la vez
+        const [t] = await db.execute('SELECT id FROM tecnicos WHERE correo = ?', [correo.trim().toLowerCase()])
+            .catch(() => [[]]);
+        if (t.length) return res.status(409).json({ error: 'Ese correo ya está registrado como servicio técnico' });
+
         const hash = await bcrypt.hash(password, SALT_ROUNDS);
         await db.execute(
             'INSERT INTO docentes (nombre, correo, password_hash) VALUES (?, ?, ?)',

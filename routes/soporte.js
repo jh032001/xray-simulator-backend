@@ -79,19 +79,22 @@ router.post('/tecnico/login', async (req, res) => {
     }
 });
 
-// Docente: crear la cuenta del servicio técnico si todavía no existe (una sola vez).
-// Alternativa a la variable TECNICO_PASSWORD cuando no se puede configurar en el servidor.
-router.post('/tecnico/crear', docenteRequired, async (req, res) => {
-    const password = String(req.body.password || '');
+// Registro de una cuenta de servicio técnico (desde la pestaña "Registrarse" del login)
+router.post('/tecnico/register', async (req, res) => {
+    const { nombre, correo, password } = req.body;
+    if (!nombre || !correo || !password) return res.status(400).json({ error: 'Faltan campos' });
     if (password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+    const mail = correo.trim().toLowerCase();
     try {
-        const [t] = await db.execute('SELECT id FROM tecnicos WHERE correo = ?', [SOPORTE.correo]);
-        if (t.length) return res.status(409).json({ error: 'La cuenta de servicio técnico ya existe' });
+        const [d] = await db.execute('SELECT id FROM docentes WHERE correo = ?', [mail]);
+        if (d.length) return res.status(409).json({ error: 'Ese correo ya está registrado como docente' });
         const hash = await bcrypt.hash(password, 10);
         await db.execute('INSERT INTO tecnicos (nombre, correo, password_hash) VALUES (?, ?, ?)',
-            ['Servicio técnico', SOPORTE.correo, hash]);
-        res.json({ ok: true, correo: SOPORTE.correo });
+            [nombre.trim(), mail, hash]);
+        res.json({ ok: true });
     } catch (e) {
+        if (e.code === 'ER_DUP_ENTRY')
+            return res.status(409).json({ error: 'Ese correo ya está registrado como servicio técnico' });
         res.status(500).json({ error: e.message });
     }
 });
