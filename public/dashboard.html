@@ -70,6 +70,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   transition:opacity .2s,transform .1s;letter-spacing:.01em;
 }
 .auth-btn:hover{opacity:.88;}
+.auth-btn:disabled{opacity:.55;cursor:wait;}
 .auth-btn:active{transform:scale(.99);}
 .auth-msg{margin-top:12px;font-size:.82rem;text-align:center;min-height:18px;border-radius:7px;}
 .auth-msg.error{color:#fca5a5;background:rgba(239,68,68,.09);padding:9px;}
@@ -709,6 +710,22 @@ let _chartOv = null, _chartQ = null, _chartQPdi = null;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
+// Peticiones del login/registro: con tiempo límite, para no quedar en "Verificando..." si el
+// servidor no responde (por ejemplo, durante un redespliegue), y botones bloqueados mientras tanto.
+async function authPost(url, opts) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+  document.querySelectorAll('.auth-btn').forEach(b => b.disabled = true);
+  try { return await fetch(url, {...opts, signal: ctrl.signal}); }
+  finally { clearTimeout(timer); document.querySelectorAll('.auth-btn').forEach(b => b.disabled = false); }
+}
+function authError(msg, e) {
+  msg.className = 'auth-msg error';
+  msg.textContent = e && e.name === 'AbortError'
+    ? 'El servidor tardó demasiado en responder. Intenta de nuevo en unos segundos.'
+    : 'Error de conexión. Revisa tu internet e intenta de nuevo.';
+}
+
 function switchTab(tab) {
   document.querySelectorAll('.tab-pill[data-tab]').forEach(t => t.classList.toggle('active', t.dataset.tab===tab));
   ['login','register','tecnico'].forEach(n =>
@@ -721,7 +738,7 @@ async function doLoginTecnico() {
   const msg    = document.getElementById('tec-msg');
   msg.className='auth-msg'; msg.textContent='Verificando...';
   try {
-    const r = await fetch('/api/tecnico/login',{method:'POST',
+    const r = await authPost('/api/tecnico/login',{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify({correo,password:pass})});
     const d = await r.json();
     if (!r.ok){msg.className='auth-msg error';msg.textContent=d.error;return;}
@@ -730,7 +747,7 @@ async function doLoginTecnico() {
     ses.set('docente_nombre',_nombre);
     ses.set('rol',_rol);
     showDashboard();
-  } catch { msg.className='auth-msg error'; msg.textContent='Error de conexión'; }
+  } catch(e) { authError(msg,e); }
 }
 
 async function doLogin() {
@@ -739,7 +756,7 @@ async function doLogin() {
   const msg    = document.getElementById('login-msg');
   msg.className='auth-msg'; msg.textContent='Verificando...';
   try {
-    const r = await fetch('/api/docente/login',{method:'POST',
+    const r = await authPost('/api/docente/login',{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify({correo,password:pass})});
     const d = await r.json();
     if (!r.ok){msg.className='auth-msg error';msg.textContent=d.error;return;}
@@ -748,7 +765,7 @@ async function doLogin() {
     ses.set('docente_nombre',_nombre);
     ses.set('rol',_rol);
     showDashboard();
-  } catch { msg.className='auth-msg error'; msg.textContent='Error de conexión'; }
+  } catch(e) { authError(msg,e); }
 }
 
 let _tipoCuenta = 'docente';
@@ -770,7 +787,7 @@ async function doRegister() {
   const tec    = _tipoCuenta==='tecnico';
   msg.className='auth-msg'; msg.textContent='Creando cuenta...';
   try {
-    const r = await fetch(tec ? '/api/tecnico/register' : '/api/docente/register',{method:'POST',
+    const r = await authPost(tec ? '/api/tecnico/register' : '/api/docente/register',{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre,correo,password:pass})});
     const d = await r.json();
     if (!r.ok){msg.className='auth-msg error';msg.textContent=d.error;return;}
@@ -781,7 +798,7 @@ async function doRegister() {
       switchTab(tec ? 'tecnico' : 'login');
       document.getElementById(tec ? 'tec-correo' : 'login-correo').value = correo;
     },1800);
-  } catch { msg.className='auth-msg error'; msg.textContent='Error de conexión'; }
+  } catch(e) { authError(msg,e); }
 }
 
 function logout() {
