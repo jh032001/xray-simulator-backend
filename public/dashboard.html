@@ -1166,7 +1166,8 @@ function renderReportes() {
     const acciones = tec
       ? `<select class="est-select" onchange="cambiarEstado(${rep.id},this.value)">
            ${Object.entries(ESTADO_TXT).map(([k,v])=>`<option value="${k}"${k===rep.estado?' selected':''}>${v}</option>`).join('')}
-         </select>`
+         </select>
+         <button class="del-btn" onclick="eliminarReporte(${rep.id})">🗑 Eliminar</button>`
       : (rep.estado!=='resuelto' ? `<button class="btn-ok" style="padding:7px 12px" onclick="marcarResuelto(${rep.id})">✓ Ya se solucionó</button>` : '');
     return `<div class="rep${abierto?' open':''}" id="rep-${rep.id}">
       <div class="rep-head" onclick="toggleRep(${rep.id})">
@@ -1179,15 +1180,17 @@ function renderReportes() {
       <div class="rep-body">
         ${msgs}
         <div class="reply-row">
-          <textarea class="inp" id="reply-${rep.id}" maxlength="4000"
-            placeholder="${tec?'Responder al docente…':'Escribir al servicio técnico…'}"></textarea>
-          <button class="btn-pri" onclick="responder(${rep.id})">Enviar</button>
+          <textarea class="inp" id="reply-${rep.id}" maxlength="4000" oninput="_borradores[${rep.id}]=this.value"
+            placeholder="${tec?'Responder al docente…':'Escribir al servicio técnico…'}">${esc(_borradores[rep.id]||'')}</textarea>
+          <button class="btn-pri" onclick="responder(${rep.id})">Enviar respuesta</button>
         </div>
         <div class="row-btns" style="align-items:center">${acciones}<span class="sup-msg" id="rmsg-${rep.id}"></span></div>
       </div>
     </div>`;
   }).join('');
 }
+
+const _borradores = {};   // texto escrito en cada reporte; sobrevive a los refrescos de la lista
 
 const ultimoEsTecnico = rep => rep.mensajes.length && rep.mensajes[rep.mensajes.length-1].autor==='tecnico';
 
@@ -1196,22 +1199,40 @@ function toggleRep(id) {
   document.getElementById('rep-'+id)?.classList.toggle('open');
 }
 
-async function responder(id) {
+// Envía el texto escrito en el reporte. Devuelve true si se envió (o si no había nada que enviar y opcional=true).
+async function responder(id, opcional=false) {
   const ta = document.getElementById('reply-'+id);
-  const texto = ta.value.trim();
+  const texto = (ta?.value ?? _borradores[id] ?? '').trim();
   const msg = document.getElementById('rmsg-'+id);
-  if (!texto){ msg.className='sup-msg error'; msg.textContent='Escribe un mensaje.'; return; }
+  if (!texto){
+    if (!opcional && msg){ msg.className='sup-msg error'; msg.textContent='Escribe un mensaje.'; }
+    return opcional;
+  }
   try {
     const r = await fetch(`/api/reportes/${id}/mensajes`,{method:'POST',headers:apiH(),body:JSON.stringify({texto})});
-    const d = await r.json();
-    if (!r.ok){ msg.className='sup-msg error'; msg.textContent=d.error; return; }
-    ta.value=''; ta.blur();
+    const d = await r.json().catch(()=>({}));
+    if (!r.ok){ if (msg){ msg.className='sup-msg error'; msg.textContent=d.error||'No se pudo enviar'; } return false; }
+    delete _borradores[id];
+    if (ta){ ta.value=''; ta.blur(); }
     await loadReportes();
-  } catch { msg.className='sup-msg error'; msg.textContent='Error de conexión'; }
+    const m2 = document.getElementById('rmsg-'+id);
+    if (m2){ m2.className='sup-msg ok'; m2.textContent='✓ Mensaje enviado'; }
+    return true;
+  } catch { if (msg){ msg.className='sup-msg error'; msg.textContent='Error de conexión'; } return false; }
 }
 
 async function cambiarEstado(id, estado) {
+  // Si hay una respuesta escrita sin enviar, se envía antes de cambiar el estado
+  const ok = await responder(id, true);
+  if (!ok){ loadReportes(); return; }
   await fetch(`/api/reportes/${id}/estado`,{method:'PATCH',headers:apiH(),body:JSON.stringify({estado})});
+  await loadReportes();
+}
+
+async function eliminarReporte(id) {
+  if (!confirm(`¿Eliminar el reporte #${id} y sus mensajes?`)) return;
+  await fetch(`/api/reportes/${id}`,{method:'DELETE',headers:apiH()});
+  _abiertos.delete(id); delete _borradores[id];
   loadReportes();
 }
 

@@ -214,6 +214,20 @@ router.patch('/reportes/:id/estado', tecnicoRequired, async (req, res) => {
     }
 });
 
+// Técnico: eliminar un reporte (por ejemplo, reportes de prueba) junto con sus mensajes
+router.delete('/reportes/:id', tecnicoRequired, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (!id) return res.status(400).json({ error: 'ID inválido' });
+    try {
+        await db.execute('DELETE FROM reporte_mensajes WHERE reporte_id = ?', [id]);
+        const [r] = await db.execute('DELETE FROM reportes WHERE id = ?', [id]);
+        if (!r.affectedRows) return res.status(404).json({ error: 'Reporte no encontrado' });
+        res.json({ ok: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Docente: marcar su propio reporte como resuelto ("ya se solucionó")
 router.post('/reportes/:id/resuelto', docenteRequired, async (req, res) => {
     const id = parseInt(req.params.id);
