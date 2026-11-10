@@ -580,9 +580,7 @@ textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);
                     placeholder="Ej.: Ingeniero, la aplicación está muy lenta desde la segunda sesión…"></textarea>
                 </div>
                 <div class="row-btns">
-                  <button class="btn-pri" id="btn-enviar-reporte" onclick="enviarReporte()">Enviar reporte al técnico</button>
-                  <button class="btn-ok" id="btn-solucionado" onclick="faqSolucionado()">✓ Ya se solucionó</button>
-                </div>
+                  <button class="btn-pri" id="btn-enviar-reporte" onclick="enviarReporte()">Enviar reporte al técnico</button>                </div>
                 <div class="sup-msg" id="sup-msg"></div>
               </div>
             </div>
@@ -1085,7 +1083,6 @@ function selFaq(id) {
     ? `<div class="steps"><div class="steps-title">Prueba esto primero</div><ol>${f.pasos.map(p=>`<li>${esc(p)}</li>`).join('')}</ol></div>`
     : '';
   document.getElementById('faq-desc-label').textContent = id==='otro' ? 'Describe el problema' : 'Detalle (opcional)';
-  document.getElementById('btn-solucionado').style.display = f.pasos.length ? '' : 'none';
   setSupMsg('', '');
 }
 
@@ -1170,7 +1167,7 @@ function renderReportes() {
            ${Object.entries(ESTADO_TXT).map(([k,v])=>`<option value="${k}"${k===rep.estado?' selected':''}>${v}</option>`).join('')}
          </select>
          <button class="del-btn" onclick="eliminarReporte(${rep.id})">🗑 Eliminar</button>`
-      : (rep.estado!=='resuelto' ? `<button class="btn-ok" style="padding:7px 12px" onclick="marcarResuelto(${rep.id})">✓ Ya se solucionó</button>` : '');
+      : (rep.estado!=='resuelto' ? `<button class="btn-ok" style="padding:7px 12px" onclick="marcarResuelto(${rep.id})">✓ Marcar como resuelto</button>` : '');
     return `<div class="rep${abierto?' open':''}" id="rep-${P}${rep.id}">
       <div class="rep-head" onclick="toggleRep(${rep.id})">
         <span class="rep-id">#${rep.id}</span>
