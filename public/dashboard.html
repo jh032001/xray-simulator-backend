@@ -768,6 +768,10 @@ async function doRegister() {
 function logout() {
   ses.del('token'); ses.del('docente_nombre'); ses.del('rol');
   _token=null; _nombre=null; _rol='docente'; _allData=[]; _qStats=[]; _reportes=[];
+  document.getElementById('mis-reportes').innerHTML='';
+  document.getElementById('reportes-tecnico').innerHTML='';
+  _abiertos.clear(); for (const k in _borradores) delete _borradores[k];
+  faqSolucionado();
   if (_poll){clearInterval(_poll);_poll=null;}
   document.getElementById('auth-overlay').style.display='flex';
   document.getElementById('dashboard').style.display='none';
@@ -1146,8 +1150,13 @@ async function loadReportes() {
   } catch(e){console.error(e);}
 }
 
+// Ids únicos por rol: las listas del docente y del técnico nunca comparten ids en la página
+const pfx = () => _rol==='tecnico' ? 't' : 'd';
+const repEl = (k,id) => document.getElementById(`${k}-${pfx()}${id}`);
+
 function renderReportes() {
   const tec = _rol==='tecnico';
+  const P = pfx();
   const cont = document.getElementById(tec ? 'reportes-tecnico' : 'mis-reportes');
   // no repintar mientras el usuario escribe una respuesta
   if (cont.contains(document.activeElement) && document.activeElement.tagName==='TEXTAREA') return;
@@ -1177,7 +1186,7 @@ function renderReportes() {
          </select>
          <button class="del-btn" onclick="eliminarReporte(${rep.id})">🗑 Eliminar</button>`
       : (rep.estado!=='resuelto' ? `<button class="btn-ok" style="padding:7px 12px" onclick="marcarResuelto(${rep.id})">✓ Ya se solucionó</button>` : '');
-    return `<div class="rep${abierto?' open':''}" id="rep-${rep.id}">
+    return `<div class="rep${abierto?' open':''}" id="rep-${P}${rep.id}">
       <div class="rep-head" onclick="toggleRep(${rep.id})">
         <span class="rep-id">#${rep.id}</span>
         <span class="rep-cat">${esc(rep.categoria)}</span>
@@ -1188,11 +1197,11 @@ function renderReportes() {
       <div class="rep-body">
         ${msgs}
         <div class="reply-row">
-          <textarea class="inp" id="reply-${rep.id}" maxlength="4000" oninput="_borradores[${rep.id}]=this.value"
+          <textarea class="inp" id="reply-${P}${rep.id}" maxlength="4000" oninput="_borradores[${rep.id}]=this.value"
             placeholder="${tec?'Responder al docente…':'Escribir al servicio técnico…'}">${esc(_borradores[rep.id]||'')}</textarea>
           <button class="btn-pri" onclick="responder(${rep.id})">Enviar respuesta</button>
         </div>
-        <div class="row-btns" style="align-items:center">${acciones}<span class="sup-msg" id="rmsg-${rep.id}"></span></div>
+        <div class="row-btns" style="align-items:center">${acciones}<span class="sup-msg" id="rmsg-${P}${rep.id}"></span></div>
       </div>
     </div>`;
   }).join('');
@@ -1204,14 +1213,14 @@ const ultimoEsTecnico = rep => rep.mensajes.length && rep.mensajes[rep.mensajes.
 
 function toggleRep(id) {
   _abiertos.has(id) ? _abiertos.delete(id) : _abiertos.add(id);
-  document.getElementById('rep-'+id)?.classList.toggle('open');
+  repEl('rep',id)?.classList.toggle('open');
 }
 
 // Envía el texto escrito en el reporte. Devuelve true si se envió (o si no había nada que enviar y opcional=true).
 async function responder(id, opcional=false) {
-  const ta = document.getElementById('reply-'+id);
+  const ta = repEl('reply',id);
   const texto = (ta?.value ?? _borradores[id] ?? '').trim();
-  const msg = document.getElementById('rmsg-'+id);
+  const msg = repEl('rmsg',id);
   if (!texto){
     if (!opcional && msg){ msg.className='sup-msg error'; msg.textContent='Escribe un mensaje.'; }
     return opcional;
@@ -1223,7 +1232,7 @@ async function responder(id, opcional=false) {
     delete _borradores[id];
     if (ta){ ta.value=''; ta.blur(); }
     await loadReportes();
-    const m2 = document.getElementById('rmsg-'+id);
+    const m2 = repEl('rmsg',id);
     if (m2){ m2.className='sup-msg ok'; m2.textContent='✓ Mensaje enviado'; }
     return true;
   } catch { if (msg){ msg.className='sup-msg error'; msg.textContent='Error de conexión'; } return false; }
