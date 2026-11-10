@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard — Simulador VR Rayos X</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E🔬%3C/text%3E%3C/svg%3E">
 <style>
 :root {
   --bg:       #080c18;
@@ -623,6 +623,7 @@ textarea.inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-glow);
   </div>
 </div>
 
+<script src="/vendor/chart.umd.min.js"></script>
 <script>
 const SEMESTRES = ['','Primero','Segundo','Tercero','Cuarto','Quinto','Sexto','Séptimo'];
 const PREGUNTAS = [
@@ -646,9 +647,16 @@ const PREGUNTAS_PDI = [
   'Imagen oscura de manera uniforme: ¿qué ajuste la corrige?'
 ];
 
-let _token   = localStorage.getItem('token');
-let _nombre  = localStorage.getItem('docente_nombre');
-let _rol     = localStorage.getItem('rol') || 'docente';
+// Cada pestaña recuerda su propia sesión (sessionStorage), así docente y técnico pueden
+// estar abiertos a la vez en el mismo navegador. localStorage queda como respaldo.
+const ses = {
+  get: k => sessionStorage.getItem(k) ?? localStorage.getItem(k),
+  set: (k,v) => { sessionStorage.setItem(k,v); localStorage.setItem(k,v); },
+  del: k => { sessionStorage.removeItem(k); localStorage.removeItem(k); }
+};
+let _token   = ses.get('token');
+let _nombre  = ses.get('docente_nombre');
+let _rol     = ses.get('rol') || 'docente';
 let _reportes = [];
 let _abiertos = new Set();      // reportes desplegados (se conservan al refrescar)
 let _faqSel   = null;
@@ -716,9 +724,9 @@ async function doLoginTecnico() {
     const d = await r.json();
     if (!r.ok){msg.className='auth-msg error';msg.textContent=d.error;return;}
     _token=d.token; _nombre=d.nombre; _rol='tecnico';
-    localStorage.setItem('token',_token);
-    localStorage.setItem('docente_nombre',_nombre);
-    localStorage.setItem('rol',_rol);
+    ses.set('token',_token);
+    ses.set('docente_nombre',_nombre);
+    ses.set('rol',_rol);
     showDashboard();
   } catch { msg.className='auth-msg error'; msg.textContent='Error de conexión'; }
 }
@@ -734,9 +742,9 @@ async function doLogin() {
     const d = await r.json();
     if (!r.ok){msg.className='auth-msg error';msg.textContent=d.error;return;}
     _token=d.token; _nombre=d.nombre; _rol='docente';
-    localStorage.setItem('token',_token);
-    localStorage.setItem('docente_nombre',_nombre);
-    localStorage.setItem('rol',_rol);
+    ses.set('token',_token);
+    ses.set('docente_nombre',_nombre);
+    ses.set('rol',_rol);
     showDashboard();
   } catch { msg.className='auth-msg error'; msg.textContent='Error de conexión'; }
 }
@@ -758,7 +766,7 @@ async function doRegister() {
 }
 
 function logout() {
-  localStorage.removeItem('token'); localStorage.removeItem('docente_nombre'); localStorage.removeItem('rol');
+  ses.del('token'); ses.del('docente_nombre'); ses.del('rol');
   _token=null; _nombre=null; _rol='docente'; _allData=[]; _qStats=[]; _reportes=[];
   if (_poll){clearInterval(_poll);_poll=null;}
   document.getElementById('auth-overlay').style.display='flex';
