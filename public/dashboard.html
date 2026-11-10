@@ -811,10 +811,21 @@ function logout() {
   if (_poll){clearInterval(_poll);_poll=null;}
   document.getElementById('auth-overlay').style.display='flex';
   document.getElementById('dashboard').style.display='none';
+  limpiarLogin();
+}
+
+// Deja el formulario de acceso limpio: sin avisos viejos ni contraseñas escritas
+function limpiarLogin() {
+  ['login-msg','tec-msg','reg-msg'].forEach(id => {
+    const m = document.getElementById(id); m.className = 'auth-msg'; m.textContent = '';
+  });
+  ['login-password','tec-password','reg-password'].forEach(id => document.getElementById(id).value = '');
+  document.querySelectorAll('.auth-btn').forEach(b => b.disabled = false);
 }
 
 function showDashboard() {
   const tec = _rol==='tecnico';
+  limpiarLogin();
   document.getElementById('auth-overlay').style.display='none';
   document.getElementById('dashboard').style.display='block';
   document.getElementById('sb-avatar').textContent = _nombre?.[0]?.toUpperCase()||(tec?'T':'D');
